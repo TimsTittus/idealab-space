@@ -1,0 +1,10 @@
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+# Postgres (Drizzle ORM - transaction-mode pooler)
+DATABASE_URL=
+
+# Google OAuth (Placeholders for local dev)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
