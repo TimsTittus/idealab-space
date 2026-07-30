@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Settings, Send, ExternalLink } from "lucide-react";
+import { Settings, Send, ShieldCheck, ChevronRight } from "lucide-react";
 
 const proficiencyDots = (level: string) => {
   const levels: Record<string, number> = {
@@ -81,10 +81,24 @@ export default async function ProfilePage() {
         </p>
       )}
 
+      {/* Admin Portal Link */}
+      {user.app_metadata?.role === "admin" && (
+        <Link
+          href="/admin"
+          className="mt-5 flex w-full items-center justify-between rounded-2xl bg-amber-500 px-5 py-4 font-extrabold text-slate-950 shadow-md transition-all active:scale-[0.98] hover:bg-amber-400"
+        >
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="h-5 w-5" />
+            <span>Admin Management Portal</span>
+          </div>
+          <ChevronRight className="h-5 w-5" />
+        </Link>
+      )}
+
       {/* Edit Profile */}
       <Link
         href="/profile/edit"
-        className="mt-5 flex w-full items-center justify-center rounded-2xl border-2 border-border py-3.5 text-sm font-bold text-text-primary transition-all active:scale-[0.98]"
+        className="mt-3 flex w-full items-center justify-center rounded-2xl border-2 border-border py-3.5 text-sm font-bold text-text-primary transition-all active:scale-[0.98]"
       >
         Edit Profile
       </Link>

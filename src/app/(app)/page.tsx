@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Lightbulb,
   LogIn,
+  ShieldCheck,
 } from "lucide-react";
 import EventCard from "@/components/EventCard";
 
@@ -45,15 +46,26 @@ export default async function HomePage() {
             </div>
 
             {user ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/30 active:scale-95"
-              >
-                <User className="h-3.5 w-3.5" />
-                <span className="max-w-[110px] truncate">
-                  @{user.email?.split("@")[0]}
-                </span>
-              </Link>
+              <div className="flex items-center gap-2">
+                {user.app_metadata?.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1.5 text-xs font-extrabold text-slate-950 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    <span>Admin Portal</span>
+                  </Link>
+                )}
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/30 active:scale-95"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  <span className="max-w-[110px] truncate">
+                    @{user.email?.split("@")[0]}
+                  </span>
+                </Link>
+              </div>
             ) : (
               <Link
                 href="/login"
