@@ -33,20 +33,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicPaths = [
-    "/",
-    "/login",
-    "/signup",
-    "/tv-dashboard",
-    "/auth/callback",
-    "/events",
-    "/equipment",
-    "/space",
-  ];
-
   const pathname = request.nextUrl.pathname;
-  const isPublicPath =
-    pathname === "/" || publicPaths.some((path) => path !== "/" && pathname.startsWith(path));
+
+  if (pathname.startsWith("/admin")) {
+    const role = user?.app_metadata?.role;
+    if (!user || role !== "admin") {
+      const dashboardUrl = new URL("/dashboard", request.url);
+      return NextResponse.redirect(dashboardUrl, 307);
+    }
+  }
 
   const protectedPaths = ["/space/checkin", "/profile/edit"];
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));

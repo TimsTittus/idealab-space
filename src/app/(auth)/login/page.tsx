@@ -76,7 +76,15 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
+    const {
+      data: { user: authedUser },
+    } = await supabase.auth.getUser();
+
+    if (authedUser?.app_metadata?.role === "admin") {
+      router.push("/admin");
+    } else {
+      router.push("/");
+    }
     router.refresh();
   };
 
