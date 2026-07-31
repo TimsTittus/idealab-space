@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import {
   Calendar,
@@ -31,6 +32,7 @@ const EVENT_TYPES = ["Workshop", "Bootcamp", "Seminar", "Hackathon", "Open Day"]
 
 export default function AdminEventsPage() {
   const supabase = createClient();
+  const [mounted, setMounted] = useState(false);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,16 +40,21 @@ export default function AdminEventsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
 
-  // Local datetime-local string helper
-  const nowStr = new Date().toISOString().slice(0, 16);
+  const getInitialDates = () => {
+    const start = new Date();
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    return {
+      start_time: format(start, "yyyy-MM-dd'T'HH:mm"),
+      end_time: format(end, "yyyy-MM-dd'T'HH:mm"),
+    };
+  };
 
   const [formData, setFormData] = useState({
     title: "",
     event_type: "Workshop",
     location: "IDEA Lab, SJCET",
     description: "",
-    start_time: nowStr,
-    end_time: nowStr,
+    ...getInitialDates(),
     image_url: "",
   });
 
@@ -56,31 +63,36 @@ export default function AdminEventsPage() {
 
   const fetchEvents = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("events")
-      .select("*")
-      .order("start_time", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("start_time", { ascending: false });
 
-    setEvents(data || []);
-    setLoading(false);
+      if (error) {
+        console.error("Error fetching events:", error.message);
+      }
+      setEvents(data || []);
+    } catch (err) {
+      console.error("Error fetching events:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchEvents();
   }, []);
 
   const openAddModal = () => {
     setEditingEvent(null);
-    const start = new Date();
-    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-
     setFormData({
       title: "",
       event_type: "Workshop",
       location: "IDEA Lab, SJCET",
       description: "",
-      start_time: format(start, "yyyy-MM-dd'T'HH:mm"),
-      end_time: format(end, "yyyy-MM-dd'T'HH:mm"),
+      ...getInitialDates(),
       image_url: "",
     });
     setFormError("");
@@ -107,8 +119,23 @@ export default function AdminEventsPage() {
     setSubmitting(true);
     setFormError("");
 
-    const isoStartTime = new Date(formData.start_time).toISOString();
-    const isoEndTime = new Date(formData.end_time).toISOString();
+    const startDate = new Date(formData.start_time);
+    const endDate = new Date(formData.end_time);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      setFormError("Please select valid Start and End times.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (endDate <= startDate) {
+      setFormError("End Time must be after Start Time.");
+      setSubmitting(false);
+      return;
+    }
+
+    const isoStartTime = startDate.toISOString();
+    const isoEndTime = endDate.toISOString();
 
     const endpoint = "/api/admin/events";
     const method = editingEvent ? "PUT" : "POST";
@@ -125,33 +152,46 @@ export default function AdminEventsPage() {
         end_time: isoEndTime,
       };
 
-    const res = await fetch(endpoint, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const result = await res.json();
-    if (!res.ok) {
-      setFormError(result.error || "Failed to save event.");
+      const result = await res.json();
+      if (!res.ok) {
+        setFormError(result.error || "Failed to save event.");
+        setSubmitting(false);
+        return;
+      }
+
+      setIsModalOpen(false);
       setSubmitting(false);
-      return;
+      fetchEvents();
+    } catch (err: any) {
+      setFormError(err?.message || "Server Error saving event.");
+      setSubmitting(false);
     }
-
-    setIsModalOpen(false);
-    setSubmitting(false);
-    fetchEvents();
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+    if (!confirm("Are you sure you want to delete this event? This action will remove it from the database.")) return;
 
-    const res = await fetch(`/api/admin/events?id=${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`/api/admin/events?id=${id}`, {
+        method: "DELETE",
+      });
 
-    if (res.ok) {
+      const result = await res.json();
+      if (!res.ok) {
+        alert(result.error || "Failed to delete event.");
+        return;
+      }
+
       fetchEvents();
+    } catch (err: any) {
+      alert(err?.message || "Error deleting event.");
     }
   };
 
@@ -246,16 +286,27 @@ export default function AdminEventsPage() {
       </div>
 
       {/* Add / Edit Event Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 sm:p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      {isModalOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/60 backdrop-blur-sm overflow-y-auto animate-fade-in">
+          <div className="relative w-full max-w-lg my-auto rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-900">
-                {editingEvent ? "Edit Event" : "Create New Event"}
-              </h3>
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold">
+                  <Calendar className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                    {editingEvent ? "Edit Event" : "Create New Event"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {editingEvent ? "Update session schedule and details" : "Schedule workshops or bootcamps"}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                title="Close modal"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -263,8 +314,8 @@ export default function AdminEventsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Event Title
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Event Title *
                 </label>
                 <input
                   type="text"
@@ -274,21 +325,21 @@ export default function AdminEventsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Event Type
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Event Type *
                   </label>
                   <select
                     value={formData.event_type}
                     onChange={(e) =>
                       setFormData({ ...formData, event_type: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
                   >
                     {EVENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -299,7 +350,7 @@ export default function AdminEventsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Location
                   </label>
                   <input
@@ -309,16 +360,16 @@ export default function AdminEventsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
                 </div>
               </div>
 
               {/* Start & End Timestamptz Pickers */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Start Time (timestamptz)
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Start Time *
                   </label>
                   <input
                     type="datetime-local"
@@ -327,13 +378,13 @@ export default function AdminEventsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, start_time: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    End Time (timestamptz)
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    End Time *
                   </label>
                   <input
                     type="datetime-local"
@@ -342,13 +393,13 @@ export default function AdminEventsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, end_time: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -358,29 +409,29 @@ export default function AdminEventsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                 />
               </div>
 
               {formError && (
-                <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">
+                <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{formError}</span>
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2"
+                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50 active:scale-95 transition-all flex items-center gap-2 shadow-sm"
                 >
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   <span>{editingEvent ? "Save Event" : "Create Event"}</span>
@@ -388,7 +439,8 @@ export default function AdminEventsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -24,9 +24,27 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { title, description, event_type, location, start_time, end_time, image_url } = body;
 
-    if (!title || !start_time || !end_time) {
+    const trimmedTitle = title?.trim();
+    if (!trimmedTitle || !start_time || !end_time) {
       return NextResponse.json(
-        { error: "Title, Start Time, and End Time are required." },
+        { error: "Event Title, Start Time, and End Time are required." },
+        { status: 400 }
+      );
+    }
+
+    const startDate = new Date(start_time);
+    const endDate = new Date(end_time);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid Start Time or End Time date format." },
+        { status: 400 }
+      );
+    }
+
+    if (endDate <= startDate) {
+      return NextResponse.json(
+        { error: "End Time must be after Start Time." },
         { status: 400 }
       );
     }
@@ -34,13 +52,13 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("events")
       .insert({
-        title,
-        description: description || "",
-        event_type: event_type || "Workshop",
-        location: location || "IDEA Lab, SJCET",
-        start_time: new Date(start_time).toISOString(), // timestamptz ISO format
-        end_time: new Date(end_time).toISOString(),     // timestamptz ISO format
-        image_url: image_url || "",
+        title: trimmedTitle,
+        description: description?.trim() || "",
+        event_type: event_type?.trim() || "Workshop",
+        location: location?.trim() || "IDEA Lab, SJCET",
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+        image_url: image_url?.trim() || "",
       })
       .select()
       .single();
@@ -73,16 +91,41 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Event ID is required." }, { status: 400 });
     }
 
+    const trimmedTitle = title?.trim();
+    if (!trimmedTitle || !start_time || !end_time) {
+      return NextResponse.json(
+        { error: "Event Title, Start Time, and End Time are required." },
+        { status: 400 }
+      );
+    }
+
+    const startDate = new Date(start_time);
+    const endDate = new Date(end_time);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid Start Time or End Time date format." },
+        { status: 400 }
+      );
+    }
+
+    if (endDate <= startDate) {
+      return NextResponse.json(
+        { error: "End Time must be after Start Time." },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await supabase
       .from("events")
       .update({
-        title,
-        description,
-        event_type,
-        location,
-        start_time: new Date(start_time).toISOString(),
-        end_time: new Date(end_time).toISOString(),
-        image_url,
+        title: trimmedTitle,
+        description: description?.trim() || "",
+        event_type: event_type?.trim() || "Workshop",
+        location: location?.trim() || "IDEA Lab, SJCET",
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+        image_url: image_url?.trim() || "",
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)

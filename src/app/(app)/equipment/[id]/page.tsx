@@ -110,25 +110,12 @@ const getEquipmentImage = (
   if (imageUrl) return imageUrl;
   const n = (name || "").toLowerCase();
   const c = (category || "").toLowerCase();
-  if (n.includes("laser") || c.includes("laser"))
-    return "/equipments/laser_cutter.png";
+  if (n.includes("laser") || c.includes("laser")) return "/equipments/laser_cutter.png";
   if (n.includes("cnc") || c.includes("cnc")) return "/equipments/cnc_router.png";
-  if (
-    n.includes("oscilloscope") ||
-    n.includes("signal") ||
-    c.includes("electronics") ||
-    n.includes("rigol")
-  )
-    return "/equipments/oscilloscope.png";
-  if (n.includes("soldering") || n.includes("station"))
-    return "/equipments/soldering_station.png";
-  if (
-    n.includes("pcb") ||
-    n.includes("circuit") ||
-    c.includes("embedded") ||
-    n.includes("arduino")
-  )
-    return "/equipments/pcb_printer.png";
+  if (n.includes("soldering") || n.includes("hakko") || n.includes("station")) return "/equipments/soldering_station.png";
+  if (n.includes("oscilloscope") || n.includes("rigol") || n.includes("signal")) return "/equipments/oscilloscope.png";
+  if (n.includes("pcb") || n.includes("circuit") || c.includes("embedded") || n.includes("arduino")) return "/equipments/pcb_printer.png";
+  if (c.includes("electronics")) return "/equipments/oscilloscope.png";
   return "/equipments/3d_printer.png";
 };
 

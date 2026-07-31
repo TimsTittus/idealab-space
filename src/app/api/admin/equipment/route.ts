@@ -24,9 +24,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, category, description, image_url, is_available } = body;
 
-    if (!name || !category) {
+    const trimmedName = name?.trim();
+    const trimmedCategory = category?.trim();
+
+    if (!trimmedName || !trimmedCategory) {
       return NextResponse.json(
-        { error: "Name and Category are required." },
+        { error: "Equipment Name and Category are required." },
         { status: 400 }
       );
     }
@@ -34,10 +37,10 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("equipment")
       .insert({
-        name,
-        category: category || "General",
-        description: description || "",
-        image_url: image_url || "/equipments/3d_printer.png",
+        name: trimmedName,
+        category: trimmedCategory || "General",
+        description: description?.trim() || "",
+        image_url: image_url?.trim() || "/equipments/3d_printer.png",
         is_available: is_available ?? true,
       })
       .select()
@@ -71,14 +74,24 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Equipment ID is required." }, { status: 400 });
     }
 
+    const trimmedName = name?.trim();
+    const trimmedCategory = category?.trim();
+
+    if (!trimmedName || !trimmedCategory) {
+      return NextResponse.json(
+        { error: "Equipment Name and Category are required." },
+        { status: 400 }
+      );
+    }
+
     const { data, error } = await supabase
       .from("equipment")
       .update({
-        name,
-        category,
-        description,
-        image_url,
-        is_available,
+        name: trimmedName,
+        category: trimmedCategory,
+        description: description?.trim() || "",
+        image_url: image_url?.trim() || "/equipments/3d_printer.png",
+        is_available: is_available ?? true,
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
@@ -98,7 +111,7 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE: Soft delete equipment by setting is_available = false to preserve reservations FK
+// DELETE: Delete equipment permanently from DB
 export async function DELETE(request: Request) {
   const { authorized, supabase } = await verifyAdmin();
   if (!authorized) {
@@ -108,33 +121,18 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    const hard = searchParams.get("hard") === "true";
 
     if (!id) {
       return NextResponse.json({ error: "Equipment ID is required." }, { status: 400 });
     }
 
-    if (hard) {
-      const { error } = await supabase.from("equipment").delete().eq("id", id);
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
-      return NextResponse.json({ success: true, message: "Hard deleted" });
-    }
-
-    // Soft delete: toggle is_available = false to preserve foreign key constraints
-    const { data, error } = await supabase
-      .from("equipment")
-      .update({ is_available: false, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .select()
-      .single();
+    const { error } = await supabase.from("equipment").delete().eq("id", id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, equipment: data });
+    return NextResponse.json({ success: true, message: "Equipment deleted successfully from database." });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },

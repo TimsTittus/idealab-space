@@ -94,3 +94,33 @@ CREATE POLICY "Admins have full access to space_checkins"
   TO authenticated
   USING ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
   WITH CHECK ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+-- ────────────────────────────────────────────────────────────
+-- 3. SUPABASE STORAGE SETUP (equipment-images)
+-- ────────────────────────────────────────────────────────────
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('equipment-images', 'equipment-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Public Read Access for Equipment Images" ON storage.objects;
+CREATE POLICY "Public Read Access for Equipment Images"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'equipment-images');
+
+DROP POLICY IF EXISTS "Authenticated Upload Access for Equipment Images" ON storage.objects;
+CREATE POLICY "Authenticated Upload Access for Equipment Images"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'equipment-images');
+
+DROP POLICY IF EXISTS "Authenticated Update Access for Equipment Images" ON storage.objects;
+CREATE POLICY "Authenticated Update Access for Equipment Images"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'equipment-images');
+
+DROP POLICY IF EXISTS "Authenticated Delete Access for Equipment Images" ON storage.objects;
+CREATE POLICY "Authenticated Delete Access for Equipment Images"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'equipment-images');

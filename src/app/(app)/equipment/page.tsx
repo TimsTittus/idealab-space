@@ -16,6 +16,7 @@ export default async function EquipmentPage() {
         name: item.name,
         category: item.category || "General",
         description: item.description || "",
+        image_url: item.image_url || "",
         is_available: item.is_available ?? true,
       }))
       : [];

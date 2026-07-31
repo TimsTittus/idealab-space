@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import {
   Wrench,
@@ -14,6 +15,7 @@ import {
   X,
   AlertCircle,
   Filter,
+  Upload,
 } from "lucide-react";
 
 interface Equipment {
@@ -37,6 +39,7 @@ const DEFAULT_CATEGORIES = [
 
 export default function AdminEquipmentPage() {
   const supabase = createClient();
+  const [mounted, setMounted] = useState(false);
   const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,6 +57,47 @@ export default function AdminEquipmentPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadError("");
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `equipment/${fileName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from("equipment-images")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadErr) {
+        throw uploadErr;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("equipment-images")
+        .getPublicUrl(filePath);
+
+      setFormData((prev) => ({
+        ...prev,
+        image_url: publicUrlData.publicUrl,
+      }));
+    } catch (err: any) {
+      console.error("Storage upload error:", err);
+      setUploadError(
+        err?.message ||
+        "Upload failed. Ensure bucket 'equipment-images' is created in Supabase."
+      );
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const fetchEquipment = async () => {
     setLoading(true);
@@ -67,6 +111,7 @@ export default function AdminEquipmentPage() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchEquipment();
   }, []);
 
@@ -80,6 +125,7 @@ export default function AdminEquipmentPage() {
       is_available: true,
     });
     setFormError("");
+    setUploadError("");
     setIsModalOpen(true);
   };
 
@@ -93,6 +139,7 @@ export default function AdminEquipmentPage() {
       is_available: item.is_available,
     });
     setFormError("");
+    setUploadError("");
     setIsModalOpen(true);
   };
 
@@ -124,29 +171,43 @@ export default function AdminEquipmentPage() {
   };
 
   const handleToggleStatus = async (item: Equipment) => {
-    const res = await fetch("/api/admin/equipment", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...item,
-        is_available: !item.is_available,
-      }),
-    });
+    try {
+      const res = await fetch("/api/admin/equipment", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...item,
+          is_available: !item.is_available,
+        }),
+      });
 
-    if (res.ok) {
+      const result = await res.json();
+      if (!res.ok) {
+        alert(result.error || "Failed to update equipment status.");
+        return;
+      }
       fetchEquipment();
+    } catch (err: any) {
+      alert(err?.message || "Error updating status.");
     }
   };
 
-  const handleSoftDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to deactivate this equipment?")) return;
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this equipment? This action will remove it from the database.")) return;
 
-    const res = await fetch(`/api/admin/equipment?id=${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`/api/admin/equipment?id=${id}`, {
+        method: "DELETE",
+      });
 
-    if (res.ok) {
+      const result = await res.json();
+      if (!res.ok) {
+        alert(result.error || "Failed to delete equipment.");
+        return;
+      }
       fetchEquipment();
+    } catch (err: any) {
+      alert(err?.message || "Error deleting equipment.");
     }
   };
 
@@ -273,9 +334,9 @@ export default function AdminEquipmentPage() {
                         <Edit2 className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleSoftDelete(item.id)}
+                        onClick={() => handleDelete(item.id)}
                         className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100"
-                        title="Deactivate Equipment"
+                        title="Delete Equipment"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -356,9 +417,9 @@ export default function AdminEquipmentPage() {
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleSoftDelete(item.id)}
+                            onClick={() => handleDelete(item.id)}
                             className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
-                            title="Deactivate Equipment"
+                            title="Delete Equipment"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -386,16 +447,27 @@ export default function AdminEquipmentPage() {
       </div>
 
       {/* Add / Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 sm:p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      {isModalOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/60 backdrop-blur-sm overflow-y-auto animate-fade-in">
+          <div className="relative w-full max-w-lg my-auto rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-900">
-                {editingItem ? "Edit Equipment" : "Add New Equipment"}
-              </h3>
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-bold">
+                  <Wrench className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                    {editingItem ? "Edit Equipment" : "Add New Equipment"}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {editingItem ? "Modify machine details and availability status" : "Register new machinery in SJCET IDEA Lab"}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                title="Close modal"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -403,8 +475,8 @@ export default function AdminEquipmentPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Equipment Name
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Equipment Name *
                 </label>
                 <input
                   type="text"
@@ -414,21 +486,21 @@ export default function AdminEquipmentPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Category
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Category *
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
                   >
                     {DEFAULT_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -439,8 +511,8 @@ export default function AdminEquipmentPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Status
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Availability Status *
                   </label>
                   <select
                     value={formData.is_available ? "true" : "false"}
@@ -450,7 +522,7 @@ export default function AdminEquipmentPage() {
                         is_available: e.target.value === "true",
                       })
                     }
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
                   >
                     <option value="true">Available</option>
                     <option value="false">Maintenance / Unavailable</option>
@@ -459,54 +531,97 @@ export default function AdminEquipmentPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Image Path / URL
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Equipment Image
                 </label>
-                <input
-                  type="text"
-                  placeholder="/equipments/3d_printer.png"
-                  value={formData.image_url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, image_url: e.target.value })
-                  }
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="/equipments/3d_printer.png or https://..."
+                      value={formData.image_url}
+                      onChange={(e) =>
+                        setFormData({ ...formData, image_url: e.target.value })
+                      }
+                      className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                    <label className="relative flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 text-xs cursor-pointer shadow-sm active:scale-95 transition-all shrink-0">
+                      {uploadingImage ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+                      ) : (
+                        <Upload className="h-4 w-4 text-amber-400" />
+                      )}
+                      <span>{uploadingImage ? "Uploading..." : "Upload File"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingImage}
+                        onChange={handleImageUpload}
+                        className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                    </label>
+                  </div>
+
+                  {uploadError && (
+                    <div className="flex items-center gap-1.5 rounded-lg bg-rose-50 border border-rose-200 p-2 text-xs font-semibold text-rose-700">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
+
+                  {/* Live Image Preview */}
+                  {formData.image_url && (
+                    <div className="flex items-center gap-3 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                      <div className="h-12 w-12 rounded-lg bg-white p-1 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={formData.image_url}
+                          alt="Preview"
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-700 truncate">Image Preview</p>
+                        <p className="text-[11px] text-slate-400 truncate">{formData.image_url}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Description
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Detailed specifications and capabilities..."
+                  placeholder="Detailed specifications, build volume, and capabilities..."
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                 />
               </div>
 
               {formError && (
-                <div className="flex items-center gap-2 rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">
+                <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{formError}</span>
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50 flex items-center gap-2"
+                  className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50 active:scale-95 transition-all flex items-center gap-2 shadow-sm"
                 >
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   <span>{editingItem ? "Save Changes" : "Add Equipment"}</span>
@@ -514,7 +629,8 @@ export default function AdminEquipmentPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
