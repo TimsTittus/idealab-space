@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Lightbulb, Wifi, WifiOff } from "lucide-react";
+import { parsePostgresIntervalMs } from "@/lib/parseInterval";
 
 interface ActiveCheckin {
   id: string;
@@ -133,13 +134,7 @@ export default function TVDashboard() {
   const getTimeRemaining = useCallback(
     (checkin: ActiveCheckin) => {
       const start = new Date(checkin.checkin_timestamp);
-      const durationStr = checkin.estimated_duration || "";
-      const lower = durationStr.toLowerCase();
-      const match = lower.match(/(\d+)/);
-      const num = match ? parseInt(match[1], 10) : 1;
-      const durationMs = lower.includes("min")
-        ? num * 60 * 1000
-        : num * 60 * 60 * 1000;
+      const durationMs = parsePostgresIntervalMs(checkin.estimated_duration);
 
       const end = new Date(start.getTime() + durationMs);
       const remaining = end.getTime() - currentTime.getTime();
