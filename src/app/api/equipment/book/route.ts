@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -22,6 +23,8 @@ export async function POST(request: Request) {
     );
   }
 
+  await cleanupAndExpireActivity();
+
   const { data, error } = await supabase
     .from("equipment_reservations")
     .insert({
@@ -35,7 +38,6 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    // EXCLUDE constraint violation — double booking attempt
     if (error.code === "23P01") {
       return NextResponse.json(
         {

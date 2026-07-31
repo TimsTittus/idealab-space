@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -22,14 +23,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // Deactivate any existing active checkins for this user
+  await cleanupAndExpireActivity();
+
   await supabase
     .from("space_checkins")
     .update({ is_active: false })
     .eq("user_id", user.id)
     .eq("is_active", true);
 
-  // Insert new checkin
   const { data, error } = await supabase
     .from("space_checkins")
     .insert({

@@ -9,10 +9,12 @@ import {
   Clock,
   CheckCircle2,
 } from "lucide-react";
+import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
 export const revalidate = 0;
 
 export default async function AdminDashboardPage() {
+  await cleanupAndExpireActivity();
   const supabase = await createClient();
 
   const now = new Date();

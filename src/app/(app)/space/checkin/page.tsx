@@ -15,6 +15,7 @@ const PURPOSES = [
 ];
 
 const DURATIONS = [
+  { label: "30 mins", value: "30 minutes" },
   { label: "1 hr", value: "1 hour" },
   { label: "2 hr", value: "2 hours" },
   { label: "3 hr", value: "3 hours" },
@@ -88,13 +89,13 @@ export default function CheckinPage() {
         </span>
       </div>
 
-      <div className="flex-1 px-5 pt-8 space-y-8">
+      <div className="flex-1 px-5 pt-5 space-y-6">
         <div>
           <h1 className="text-2xl font-black text-slate-950 tracking-tight">
             What brings you to IDEA Lab today?
           </h1>
           <p className="text-xs font-bold text-stone-500 mt-1">Select your primary activity purpose</p>
-          <div className="mt-4 flex flex-wrap gap-2.5">
+          <div className="mt-3 flex flex-wrap gap-2.5">
             {PURPOSES.map((purpose) => (
               <button
                 key={purpose}
@@ -115,7 +116,7 @@ export default function CheckinPage() {
             Estimated duration of your visit
           </h2>
           <p className="text-xs font-bold text-stone-500 mt-1">How long will you be using the space?</p>
-          <div className="mt-4 flex flex-wrap gap-2.5">
+          <div className="mt-3 flex flex-wrap gap-2.5">
             {DURATIONS.map((d) => (
               <button
                 key={d.value}
@@ -136,23 +137,23 @@ export default function CheckinPage() {
             {error}
           </div>
         )}
-      </div>
 
-      <div className="px-5 pb-8 pt-4">
-        <button
-          onClick={handleCheckin}
-          disabled={loading || !selectedPurpose || !selectedDuration}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 py-4 text-sm font-black text-amber-400 shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
-          ) : (
-            <span className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-amber-400" />
-              Complete Space Check-in
-            </span>
-          )}
-        </button>
+        <div className="pt-2 pb-10">
+          <button
+            onClick={handleCheckin}
+            disabled={loading || !selectedPurpose || !selectedDuration}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 py-4 text-sm font-black text-amber-400 shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+            ) : (
+              <span className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-400" />
+                Complete Space Check-in
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

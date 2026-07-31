@@ -13,8 +13,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import EventCard from "@/components/EventCard";
+import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
 export default async function HomePage() {
+  await cleanupAndExpireActivity();
   const supabase = await createClient();
 
   const [{ data: upcomingEvents }, { count: activeCheckins }, { data: { user } }] =

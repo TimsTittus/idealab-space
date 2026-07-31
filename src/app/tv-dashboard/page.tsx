@@ -133,9 +133,15 @@ export default function TVDashboard() {
   const getTimeRemaining = useCallback(
     (checkin: ActiveCheckin) => {
       const start = new Date(checkin.checkin_timestamp);
-      const durationMatch = checkin.estimated_duration.match(/(\d+)/);
-      const hours = durationMatch ? parseInt(durationMatch[1], 10) : 1;
-      const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
+      const durationStr = checkin.estimated_duration || "";
+      const lower = durationStr.toLowerCase();
+      const match = lower.match(/(\d+)/);
+      const num = match ? parseInt(match[1], 10) : 1;
+      const durationMs = lower.includes("min")
+        ? num * 60 * 1000
+        : num * 60 * 60 * 1000;
+
+      const end = new Date(start.getTime() + durationMs);
       const remaining = end.getTime() - currentTime.getTime();
 
       if (remaining <= 0) return "Expired";

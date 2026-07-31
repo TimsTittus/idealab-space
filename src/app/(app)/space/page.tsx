@@ -2,8 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Zap, Users, HelpCircle, ChevronRight, Calendar } from "lucide-react";
 import EventCard from "@/components/EventCard";
+import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
 export default async function SpacePage() {
+  await cleanupAndExpireActivity();
   const supabase = await createClient();
 
   const [{ count: activeCheckins }, { data: upcomingEvents }] = await Promise.all([

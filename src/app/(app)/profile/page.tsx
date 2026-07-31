@@ -23,6 +23,7 @@ import {
   Layers,
 } from "lucide-react";
 import ProfileHeaderActions from "./ProfileHeaderActions";
+import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
 const SKILL_ICONS: Record<string, string> = {
   Robotics: "🤖",
@@ -79,6 +80,7 @@ const proficiencyConfig = (level: string) => {
 };
 
 export default async function ProfilePage() {
+  await cleanupAndExpireActivity();
   const supabase = await createClient();
 
   const {
