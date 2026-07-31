@@ -20,28 +20,27 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border-light bg-surface/80 backdrop-blur-xl pb-safe">
-      <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md px-2 pointer-events-none">
+      <nav className="pointer-events-auto flex items-center justify-around rounded-full border border-white/20 bg-slate-950/85 p-2 shadow-2xl shadow-slate-950/50 backdrop-blur-xl">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           const Icon = tab.icon;
+
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`relative flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 active:scale-95 ${active
-                ? "bg-text-primary text-white shadow-lg shadow-text-primary/20"
-                : "text-text-tertiary hover:text-text-secondary"
+              className={`relative flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all duration-300 active:scale-95 ${active
+                ? "bg-white/20 text-white shadow-sm backdrop-blur-md"
+                : "text-white/60 hover:text-white hover:bg-white/10"
                 }`}
             >
-              <Icon className={`h-5 w-5 ${active ? "text-white" : ""}`} />
-              {active && (
-                <span className="text-xs font-semibold">{tab.label}</span>
-              )}
+              <Icon className="h-4.5 w-4.5" />
+              {active && <span className="whitespace-nowrap">{tab.label}</span>}
             </Link>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }
