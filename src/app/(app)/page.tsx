@@ -10,6 +10,7 @@ import {
   Lightbulb,
   LogIn,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import EventCard from "@/components/EventCard";
 
@@ -34,18 +35,21 @@ export default async function HomePage() {
   const isAdmin = await isUserAdmin(supabase, user);
 
   return (
-    <div className="animate-fade-in">
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-dark to-primary px-5 pb-8 pt-12">
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
-        <div className="absolute -left-4 bottom-4 h-20 w-20 rounded-full bg-white/5" />
+    <div className="animate-fade-in pb-20">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#FFE033] via-[#FFB703] to-[#FB8500] px-5 pb-10 pt-10 text-slate-950 shadow-lg">
+        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/25 blur-xl pointer-events-none" />
+        <div className="absolute -left-10 bottom-0 h-36 w-36 rounded-full bg-orange-600/20 blur-lg pointer-events-none" />
+        <div className="absolute right-8 top-16 h-8 w-8 rounded-full bg-purple-500/80 pointer-events-none" />
 
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
-                <Lightbulb className="h-5 w-5 text-white" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 shadow-md">
+                <Lightbulb className="h-5 w-5" />
               </div>
-              <span className="text-sm font-medium text-white/80">SJCET AICTE</span>
+              <span className="text-xs font-black uppercase tracking-wider text-slate-950/80">
+                SJCET AICTE
+              </span>
             </div>
 
             {user ? (
@@ -53,15 +57,15 @@ export default async function HomePage() {
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1.5 text-xs font-extrabold text-slate-950 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
+                    className="flex items-center gap-1.5 rounded-full bg-slate-950 px-3.5 py-1.5 text-xs font-black text-amber-400 shadow-md transition-all hover:bg-slate-900 active:scale-95"
                   >
-                    <ShieldCheck className="h-3.5 w-3.5" />
+                    <ShieldCheck className="h-4 w-4" />
                     <span>Admin Portal</span>
                   </Link>
                 )}
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2 rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/30 active:scale-95"
+                  className="flex items-center gap-2 rounded-full bg-slate-950/10 px-3.5 py-1.5 text-xs font-extrabold text-slate-950 backdrop-blur-md transition-all hover:bg-slate-950/20 active:scale-95 border border-slate-950/10"
                 >
                   <User className="h-3.5 w-3.5" />
                   <span className="max-w-[110px] truncate">
@@ -72,35 +76,43 @@ export default async function HomePage() {
             ) : (
               <Link
                 href="/login"
-                className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-text-primary shadow-sm transition-all hover:bg-white/90 active:scale-95"
+                className="flex items-center gap-1.5 rounded-full bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-md transition-all hover:bg-slate-900 active:scale-95"
               >
-                <LogIn className="h-3.5 w-3.5" />
+                <LogIn className="h-4 w-4 text-amber-400" />
                 <span>Login</span>
               </Link>
             )}
           </div>
 
-          <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-white">
-            IDEA Lab
-          </h1>
-          <p className="mt-1 text-sm text-white/70">
-            Innovate · Design · Engineer · Achieve
-          </p>
+          <div className="mt-6">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-950/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-slate-950 border border-slate-950/10">
+              <Sparkles className="h-3 w-3 text-slate-950" />
+              <span>INNOVATE & CREATE</span>
+            </div>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              IDEA Lab Space
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-slate-950/80">
+              Innovate · Design · Engineer · Achieve
+            </p>
+          </div>
 
-          <div className="mt-6 rounded-2xl bg-white/15 p-4 backdrop-blur-sm">
+          <div className="mt-6 rounded-3xl bg-slate-950 p-5 text-white shadow-xl border border-slate-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-white">Space check-in</p>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <span className="flex h-2 w-2 rounded-full bg-accent-green animate-pulse-dot" />
-                  <span className="text-xs text-white/70">
-                    {activeCheckins || 0} active now
+                <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                  Live Space Status
+                </p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse-dot" />
+                  <span className="text-sm font-black text-white">
+                    {activeCheckins || 0} makers checked-in
                   </span>
                 </div>
               </div>
               <Link
                 href="/space/checkin"
-                className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-text-primary transition-all active:scale-95"
+                className="rounded-full bg-amber-400 px-5 py-2.5 text-xs font-black text-slate-950 shadow-md shadow-amber-400/20 transition-all hover:bg-amber-300 active:scale-95"
               >
                 CHECK-IN
               </Link>
@@ -109,81 +121,104 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="px-5 -mt-1">
+      <div className="px-5 -mt-4 relative z-20">
         <div className="grid grid-cols-2 gap-3 stagger-children">
           <Link
             href="/events"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition-all hover:shadow-sm active:scale-[0.98]"
+            className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-amber-400 active:scale-[0.98]"
           >
-            <Calendar className="h-5 w-5 text-primary" />
-            <span className="text-sm font-semibold">Events</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-slate-950 font-black">
+              <Calendar className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <span className="text-sm font-black text-slate-900 block">Events</span>
+              <span className="text-[11px] font-bold text-stone-500">Bootcamps & Workshops</span>
+            </div>
           </Link>
+
           <Link
             href="/equipment"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition-all hover:shadow-sm active:scale-[0.98]"
+            className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-amber-400 active:scale-[0.98]"
           >
-            <Wrench className="h-5 w-5 text-accent-amber" />
-            <span className="text-sm font-semibold">Equipment</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-slate-950 font-black">
+              <Wrench className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <span className="text-sm font-black text-slate-900 block">Equipment</span>
+              <span className="text-[11px] font-bold text-stone-500">3D Printers & CNC</span>
+            </div>
           </Link>
+
           <Link
             href="/space"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition-all hover:shadow-sm active:scale-[0.98]"
+            className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-amber-400 active:scale-[0.98]"
           >
-            <Zap className="h-5 w-5 text-accent-green" />
-            <span className="text-sm font-semibold">Space</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-slate-950 font-black">
+              <Zap className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <span className="text-sm font-black text-slate-900 block">Space</span>
+              <span className="text-[11px] font-bold text-stone-500">Active Visitors</span>
+            </div>
           </Link>
+
           <Link
             href="/profile"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition-all hover:shadow-sm active:scale-[0.98]"
+            className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-amber-400 active:scale-[0.98]"
           >
-            <User className="h-5 w-5 text-accent-pink" />
-            <span className="text-sm font-semibold">Profile</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-700 font-black">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-sm font-black text-slate-900 block">Profile</span>
+              <span className="text-[11px] font-bold text-stone-500">Maker Credentials</span>
+            </div>
           </Link>
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden bg-text-primary py-2.5">
+      <div className="mt-6 overflow-hidden bg-slate-950 py-3 shadow-inner">
         <div className="animate-marquee flex whitespace-nowrap">
-          <span className="mx-4 text-sm font-semibold text-white">
-            Keep Building ✨
+          <span className="mx-4 text-xs font-black text-amber-400 uppercase tracking-widest">
+            Keep Building
           </span>
-          <span className="mx-4 text-sm font-semibold text-accent-amber">
-            Never Stop Learning 🚀
+          <span className="mx-4 text-xs font-black text-white uppercase tracking-widest">
+            Never Stop Learning
           </span>
-          <span className="mx-4 text-sm font-semibold text-white">
-            Innovate Together 💡
+          <span className="mx-4 text-xs font-black text-amber-400 uppercase tracking-widest">
+            Innovate Together
           </span>
-          <span className="mx-4 text-sm font-semibold text-accent-green">
-            Get Your Hands Dirty 🔧
+          <span className="mx-4 text-xs font-black text-purple-300 uppercase tracking-widest">
+            Hands-on Engineering
           </span>
-          <span className="mx-4 text-sm font-semibold text-white">
-            Keep Building ✨
+          <span className="mx-4 text-xs font-black text-amber-400 uppercase tracking-widest">
+            Keep Building
           </span>
-          <span className="mx-4 text-sm font-semibold text-accent-amber">
-            Never Stop Learning 🚀
+          <span className="mx-4 text-xs font-black text-white uppercase tracking-widest">
+            Never Stop Learning
           </span>
-          <span className="mx-4 text-sm font-semibold text-white">
-            Innovate Together 💡
+          <span className="mx-4 text-xs font-black text-amber-400 uppercase tracking-widest">
+            Innovate Together
           </span>
-          <span className="mx-4 text-sm font-semibold text-accent-green">
-            Get Your Hands Dirty 🔧
+          <span className="mx-4 text-xs font-black text-purple-300 uppercase tracking-widest">
+            Hands-on Engineering
           </span>
         </div>
       </div>
 
-      <div className="mt-6 px-5">
+      <div className="mt-7 px-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-text-primary">
-            Upcoming{" "}
+          <h2 className="text-lg font-black text-slate-900 tracking-tight">
+            Upcoming Events{" "}
             {upcomingEvents && upcomingEvents.length > 0 && (
-              <span className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-surface-tertiary text-xs font-semibold text-text-secondary">
+              <span className="ml-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs font-black text-slate-950">
                 {upcomingEvents.length}
               </span>
             )}
           </h2>
           <Link
             href="/events"
-            className="flex items-center gap-1 text-sm font-medium text-text-secondary hover:text-text-primary"
+            className="flex items-center gap-1 text-xs font-bold text-amber-600 hover:text-amber-700"
           >
             View All
             <ChevronRight className="h-4 w-4" />
@@ -206,38 +241,27 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-2xl border border-border-light bg-surface-secondary p-8 text-center">
-            <Calendar className="mx-auto h-8 w-8 text-text-tertiary" />
-            <p className="mt-2 text-sm text-text-secondary">
-              No upcoming events yet
+          <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm">
+            <Calendar className="mx-auto h-8 w-8 text-amber-500" />
+            <p className="mt-2 text-xs font-bold text-slate-700">
+              No upcoming events scheduled yet
             </p>
           </div>
         )}
       </div>
 
-      <div className="my-6 flex items-center justify-center">
-        <svg width="40" height="12" viewBox="0 0 40 12" fill="none">
-          <path
-            d="M2 6C2 6 8 2 14 6C20 10 26 2 32 6C38 10 38 6 38 6"
-            stroke="#D1D5DB"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </div>
-
-      <div className="mx-5 mb-6 rounded-2xl bg-gradient-to-r from-accent-green to-accent-green/80 p-5">
-        <h3 className="text-lg font-bold text-white">
-          Welcome to the Lab 🔬
+      <div className="mx-5 mt-7 rounded-3xl bg-gradient-to-r from-[#FFE033] via-[#FFB703] to-[#FB8500] p-6 text-slate-950 shadow-md">
+        <h3 className="text-xl font-black tracking-tight text-slate-950">
+          Welcome to SJCET IDEA Lab 🔬
         </h3>
-        <p className="mt-1 text-sm text-white/80">
-          Book equipment, check in to the space, and discover events.
+        <p className="mt-1 text-xs font-bold text-slate-950/80">
+          Book state-of-the-art machinery, check in to the lab space, and join maker workshops.
         </p>
         <Link
           href="/space/checkin"
-          className="mt-4 inline-block rounded-full bg-white px-5 py-2.5 text-sm font-bold text-text-primary transition-all active:scale-95"
+          className="mt-4 inline-block rounded-full bg-slate-950 px-6 py-2.5 text-xs font-black text-amber-400 shadow-md hover:bg-slate-900 active:scale-95 transition-all"
         >
-          Get Started →
+          Get Started Now →
         </Link>
       </div>
     </div>

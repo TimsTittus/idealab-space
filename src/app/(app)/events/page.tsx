@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface EventItem {
@@ -75,29 +75,31 @@ export default function EventsPage() {
   const activeEvents = events[activeTab];
 
   return (
-    <div className="animate-fade-in px-5 pt-8">
-      <h1 className="text-2xl font-extrabold text-text-primary">Events</h1>
-      <p className="mt-1 text-sm text-text-secondary">
-        Workshops, bootcamps, and activities at IDEA Lab
+    <div className="animate-fade-in px-5 pt-8 pb-24 min-h-dvh bg-[#FCFBF4]">
+      <h1 className="text-2xl font-black text-slate-950 tracking-tight">
+        Lab Events & Bootcamps
+      </h1>
+      <p className="mt-1 text-xs font-bold text-stone-500">
+        Workshops, maker sessions, and tech activities at SJCET IDEA Lab
       </p>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-2">
+      <div className="mt-6 flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-all active:scale-95 ${activeTab === tab.key
-              ? "border-text-primary bg-text-primary text-white"
-              : "border-border text-text-secondary"
+            className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-black transition-all active:scale-95 whitespace-nowrap ${activeTab === tab.key
+              ? "bg-slate-950 text-amber-400 shadow-md"
+              : "bg-white border border-stone-200 text-stone-700 hover:bg-stone-50"
               }`}
           >
-            {tab.label}
+            <span>{tab.label}</span>
             {tab.count > 0 && (
               <span
-                className={`flex h-5 min-w-[20px] items-center justify-center rounded-full text-xs ${activeTab === tab.key
-                  ? "bg-white/20 text-white"
-                  : "bg-surface-tertiary text-text-tertiary"
+                className={`flex h-5 min-w-[20px] items-center justify-center rounded-full text-[10px] font-extrabold ${activeTab === tab.key
+                  ? "bg-amber-400 text-slate-950"
+                  : "bg-stone-100 text-stone-600"
                   }`}
               >
                 {tab.count}
@@ -109,49 +111,51 @@ export default function EventsPage() {
 
       {/* Events List */}
       {loading ? (
-        <div className="mt-12 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+        <div className="mt-16 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-amber-500" />
         </div>
       ) : activeEvents.length > 0 ? (
-        <div className="mt-6 space-y-4 stagger-children pb-4">
+        <div className="mt-6 space-y-4 stagger-children">
           {activeEvents.map((event) => (
             <div
               key={event.id}
-              className="rounded-2xl border border-border bg-surface p-5 transition-all hover:shadow-sm"
+              className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-400"
             >
-              <h3 className="text-lg font-bold text-text-primary">
+              <h3 className="text-base font-black text-slate-950 tracking-tight">
                 {event.title}
               </h3>
 
               {event.description && (
-                <p className="mt-1.5 text-sm text-text-secondary line-clamp-2">
+                <p className="mt-1.5 text-xs font-semibold text-stone-600 line-clamp-2 leading-relaxed">
                   {event.description}
                 </p>
               )}
 
-              <div className="mt-3 flex items-center gap-2 text-sm text-text-secondary">
-                <Calendar className="h-4 w-4 shrink-0" />
+              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-800">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-100 text-slate-950 shrink-0">
+                  <Calendar className="h-3.5 w-3.5 text-amber-700" />
+                </div>
                 <span>
-                  {format(new Date(event.start_time), "d MMM · hh:mm a")} -{" "}
-                  {format(new Date(event.end_time), "hh:mm a")}
+                  {format(new Date(event.start_time), "d MMM · h:mm a")} -{" "}
+                  {format(new Date(event.end_time), "h:mm a")}
                 </span>
               </div>
 
               {event.location && (
-                <div className="mt-1.5 flex items-center gap-2 text-sm text-text-secondary">
-                  <MapPin className="h-4 w-4 shrink-0" />
+                <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-stone-500">
+                  <MapPin className="h-3.5 w-3.5 text-stone-400 shrink-0" />
                   <span>{event.location}</span>
                 </div>
               )}
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {event.event_type && (
-                  <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                  <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-400">
                     {event.event_type}
                   </span>
                 )}
                 {activeTab === "ongoing" && (
-                  <span className="rounded-full bg-accent-green/10 px-3 py-1 text-xs font-semibold text-accent-green">
+                  <span className="rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-[10px] font-black text-emerald-800 uppercase tracking-wider">
                     🟢 Happening Now
                   </span>
                 )}
@@ -160,11 +164,14 @@ export default function EventsPage() {
           ))}
         </div>
       ) : (
-        <div className="mt-12 text-center">
-          <Calendar className="mx-auto h-10 w-10 text-text-tertiary" />
-          <p className="mt-3 text-sm text-text-secondary">
-            No {activeTab} events
+        <div className="mt-16 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 border border-amber-300">
+            <Calendar className="h-7 w-7 text-amber-800" />
+          </div>
+          <p className="mt-3 text-sm font-black text-slate-900 capitalize">
+            No {activeTab} events scheduled
           </p>
+          <p className="mt-1 text-xs text-stone-500">Check back soon for upcoming lab sessions.</p>
         </div>
       )}
     </div>

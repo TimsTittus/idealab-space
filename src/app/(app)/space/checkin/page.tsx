@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Zap } from "lucide-react";
 import Link from "next/link";
 import { formatAuthError } from "@/lib/formatError";
 
@@ -75,55 +75,64 @@ export default function CheckinPage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col animate-fade-in">
-      <div className="px-5 pt-6">
+    <div className="flex min-h-dvh flex-col animate-fade-in bg-[#FCFBF4]">
+      <div className="px-5 pt-6 flex items-center justify-between">
         <Link
           href="/space"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface transition-all active:scale-95"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white shadow-xs text-slate-900 transition-all active:scale-95 hover:bg-stone-50"
         >
-          <ArrowLeft className="h-5 w-5 text-text-primary" />
+          <ArrowLeft className="h-5 w-5" />
         </Link>
+        <span className="text-xs font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
+          ⚡ Space Check-in
+        </span>
       </div>
 
-      <div className="flex-1 px-5 pt-8">
-        <h1 className="text-2xl font-bold text-text-primary">
-          What brings you to Space today?
-        </h1>
-        <div className="mt-6 flex flex-wrap gap-3">
-          {PURPOSES.map((purpose) => (
-            <button
-              key={purpose}
-              onClick={() => setSelectedPurpose(purpose)}
-              className={`rounded-full border-2 px-5 py-3 text-sm font-medium transition-all active:scale-95 ${selectedPurpose === purpose
-                ? "border-text-primary bg-text-primary text-white"
-                : "border-border bg-surface text-text-primary hover:border-text-tertiary"
-                }`}
-            >
-              {purpose}
-            </button>
-          ))}
+      <div className="flex-1 px-5 pt-8 space-y-8">
+        <div>
+          <h1 className="text-2xl font-black text-slate-950 tracking-tight">
+            What brings you to IDEA Lab today?
+          </h1>
+          <p className="text-xs font-bold text-stone-500 mt-1">Select your primary activity purpose</p>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {PURPOSES.map((purpose) => (
+              <button
+                key={purpose}
+                onClick={() => setSelectedPurpose(purpose)}
+                className={`rounded-full border-2 px-5 py-3 text-xs font-black transition-all active:scale-95 ${selectedPurpose === purpose
+                  ? "border-slate-950 bg-slate-950 text-amber-400 shadow-md scale-[1.02]"
+                  : "border-stone-200 bg-white text-slate-800 hover:border-amber-400"
+                  }`}
+              >
+                {purpose}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <h2 className="mt-10 text-2xl font-bold text-text-primary">
-          Estimated duration of your visit
-        </h2>
-        <div className="mt-6 flex flex-wrap gap-3">
-          {DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              onClick={() => setSelectedDuration(d.value)}
-              className={`rounded-full border-2 px-5 py-3 text-sm font-medium transition-all active:scale-95 ${selectedDuration === d.value
-                ? "border-text-primary bg-text-primary text-white"
-                : "border-border bg-surface text-text-primary hover:border-text-tertiary"
-                }`}
-            >
-              {d.label}
-            </button>
-          ))}
+        <div>
+          <h2 className="text-2xl font-black text-slate-950 tracking-tight">
+            Estimated duration of your visit
+          </h2>
+          <p className="text-xs font-bold text-stone-500 mt-1">How long will you be using the space?</p>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {DURATIONS.map((d) => (
+              <button
+                key={d.value}
+                onClick={() => setSelectedDuration(d.value)}
+                className={`rounded-full border-2 px-5 py-3 text-xs font-black transition-all active:scale-95 ${selectedDuration === d.value
+                  ? "border-slate-950 bg-slate-950 text-amber-400 shadow-md scale-[1.02]"
+                  : "border-stone-200 bg-white text-slate-800 hover:border-amber-400"
+                  }`}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && (
-          <div className="mt-6 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">
+          <div className="rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700">
             {error}
           </div>
         )}
@@ -133,12 +142,15 @@ export default function CheckinPage() {
         <button
           onClick={handleCheckin}
           disabled={loading || !selectedPurpose || !selectedDuration}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-text-primary py-4 text-base font-bold text-white transition-all active:scale-[0.98] disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 py-4 text-sm font-black text-amber-400 shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
           ) : (
-            "Check-in"
+            <span className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-amber-400" />
+              Complete Space Check-in
+            </span>
           )}
         </button>
       </div>

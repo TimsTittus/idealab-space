@@ -296,7 +296,7 @@ export default function EquipmentDetailPage() {
 
   if (loadingData) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#FFFDF5]">
+      <div className="flex min-h-dvh items-center justify-center bg-[#FCFBF4]">
         <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
       </div>
     );
@@ -308,37 +308,37 @@ export default function EquipmentDetailPage() {
       : equipmentItem?.description || "";
 
   return (
-    <div className="min-h-dvh bg-gradient-to-b from-[#FFFDF5] via-[#FCFAEE] to-[#F8F5E9] text-gray-900 animate-fade-in relative pb-40">
+    <div className="min-h-dvh bg-[#FCFBF4] text-slate-900 animate-fade-in relative pb-40">
       {/* Top Header */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-4 bg-[#FFFDF5]/90 backdrop-blur-md">
+      <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-4 bg-[#FCFBF4]/90 backdrop-blur-md border-b border-stone-200/50">
         <Link
           href="/equipment"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm border border-black/5 text-gray-800 transition-all active:scale-95 hover:bg-gray-50"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xs border border-stone-200 text-slate-900 transition-all active:scale-95 hover:bg-stone-50"
         >
-          <ChevronLeft className="h-5 w-5 text-gray-800" />
+          <ChevronLeft className="h-5 w-5 text-slate-900" />
         </Link>
-        <h1 className="text-base font-bold text-gray-900 tracking-tight">
-          Tools Detail
+        <h1 className="text-base font-black text-slate-950 tracking-tight">
+          Machinery Details
         </h1>
         <button
           type="button"
           onClick={() => setIsFavorite(!isFavorite)}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm border border-black/5 text-gray-800 transition-all active:scale-95 hover:bg-gray-50"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xs border border-stone-200 text-slate-900 transition-all active:scale-95 hover:bg-stone-50"
         >
           <Heart
-            className={`h-5 w-5 transition-colors ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-700"
+            className={`h-5 w-5 transition-colors ${isFavorite ? "fill-rose-500 text-rose-500" : "text-slate-700"
               }`}
           />
         </button>
       </div>
 
-      <div className="relative flex flex-col items-center justify-center px-5 pt-2 pb-6">
-        <div className="absolute top-4 inset-x-12 h-44 bg-amber-200/30 rounded-full blur-3xl -z-10" />
-        <div className="my-2 flex h-56 sm:h-64 w-full items-center justify-center">
+      <div className="relative flex flex-col items-center justify-center px-5 pt-4 pb-6">
+        <div className="absolute top-4 inset-x-12 h-44 bg-amber-200/40 rounded-full blur-3xl -z-10" />
+        <div className="my-2 flex h-56 sm:h-64 w-full items-center justify-center p-4 bg-white rounded-3xl border border-stone-200 shadow-sm">
           <img
             src={equipmentImage}
             alt={equipmentItem?.name || "Equipment photo"}
-            className="h-full max-h-56 sm:max-h-64 object-contain drop-shadow-xl transition-transform duration-300 hover:scale-105"
+            className="h-full max-h-56 sm:max-h-64 object-contain drop-shadow-md transition-transform duration-300 hover:scale-105"
           />
         </div>
       </div>
@@ -347,30 +347,30 @@ export default function EquipmentDetailPage() {
       <div className="px-6 space-y-6">
         <div>
           <div className="flex items-start justify-between gap-4">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
               {equipmentItem?.name}
             </h2>
             <div className="text-right shrink-0">
-              <span className="text-xl font-extrabold text-gray-900">
+              <span className="text-xl font-black text-slate-950">
                 {costInfo.costStr}
               </span>
-              <span className="text-xs font-medium text-gray-400 block -mt-0.5">
+              <span className="text-xs font-bold text-stone-500 block -mt-0.5">
                 {costInfo.unitStr}
               </span>
             </div>
           </div>
 
-          <div className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-gray-700">
+          <div className="mt-1 flex items-center gap-1.5 text-xs font-black text-slate-900">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             <span>{equipmentItem?.rating || 4.9}</span>
-            <span className="text-xs text-gray-400 font-normal">(9k)</span>
+            <span className="text-xs text-stone-400 font-semibold">(Verified Lab Pass)</span>
           </div>
         </div>
 
         {/* Date Selector */}
         <div>
-          <h3 className="text-sm font-bold text-gray-900 mb-3 tracking-tight">
-            Select Date
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 mb-3">
+            Select Reservation Date
           </h3>
           <div className="hide-scrollbar flex gap-3 overflow-x-auto py-1">
             {availableDates.map(({ offset, date }) => {
@@ -384,15 +384,15 @@ export default function EquipmentDetailPage() {
                     setSelectedSlot(null);
                     setLoadingData(true);
                   }}
-                  className={`flex flex-col items-center justify-center min-w-[62px] px-3.5 py-2.5 rounded-2xl transition-all active:scale-95 shrink-0 ${isSelected
-                    ? "bg-white border-2 border-[#FACC15] text-[#B45309] font-bold shadow-md scale-105"
-                    : "bg-[#F4F3EE] border border-transparent text-gray-600 font-semibold hover:bg-gray-200"
+                  className={`flex flex-col items-center justify-center min-w-[66px] px-3.5 py-2.5 rounded-2xl transition-all active:scale-95 shrink-0 ${isSelected
+                      ? "bg-slate-950 text-amber-400 font-black shadow-md border-2 border-amber-400 scale-105"
+                      : "bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-50"
                     }`}
                 >
-                  <span className="text-[11px] font-semibold opacity-80 leading-none">
+                  <span className="text-[11px] font-bold opacity-80 leading-none">
                     {offset === 0 ? "Today" : format(date, "EEE")}
                   </span>
-                  <span className="text-xs font-bold leading-tight mt-1">
+                  <span className="text-xs font-black leading-tight mt-1">
                     {format(date, "d MMM")}
                   </span>
                 </button>
@@ -401,8 +401,8 @@ export default function EquipmentDetailPage() {
           </div>
         </div>
 
-        {/* Equipment Details Description */}
-        <div className="text-sm text-gray-600 leading-relaxed">
+        {/* Equipment Description */}
+        <div className="text-xs font-semibold text-stone-700 leading-relaxed rounded-2xl bg-white p-4 border border-stone-200 shadow-xs">
           <span>
             {isReadMore ? equipmentItem?.description : shortDescription}
           </span>
@@ -411,7 +411,7 @@ export default function EquipmentDetailPage() {
               <button
                 type="button"
                 onClick={() => setIsReadMore(!isReadMore)}
-                className="font-bold text-gray-900 hover:underline ml-1"
+                className="font-black text-slate-950 hover:underline ml-1"
               >
                 {isReadMore ? "Show less" : "...Read more"}
               </button>
@@ -420,8 +420,8 @@ export default function EquipmentDetailPage() {
 
         {/* Available Slots */}
         <div>
-          <h3 className="text-sm font-bold text-gray-900 mb-3 tracking-tight">
-            Available Slots
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 mb-3">
+            Available 1-Hour Time Slots
           </h3>
           <div className="grid grid-cols-3 gap-2.5">
             {slots.map((slot) => {
@@ -432,13 +432,13 @@ export default function EquipmentDetailPage() {
                   type="button"
                   disabled={slot.isBooked || slot.isPast}
                   onClick={() => setSelectedSlot(slot.hour)}
-                  className={`flex items-center justify-center gap-1.5 rounded-full border px-3 py-2.5 text-xs font-semibold transition-all active:scale-95 ${slot.isBooked
-                    ? "border-red-200 bg-red-50/60 text-red-300 line-through cursor-not-allowed"
-                    : slot.isPast
-                      ? "border-gray-200 bg-gray-100/70 text-gray-400 cursor-not-allowed"
-                      : isSelected
-                        ? "border-2 border-[#FACC15] bg-[#FFFBEA] text-[#B45309] font-bold shadow-sm"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-amber-300"
+                  className={`flex items-center justify-center gap-1.5 rounded-full border px-3 py-2.5 text-xs font-bold transition-all active:scale-95 ${slot.isBooked
+                      ? "border-rose-200 bg-rose-50 text-rose-300 line-through cursor-not-allowed"
+                      : slot.isPast
+                        ? "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed"
+                        : isSelected
+                          ? "border-2 border-slate-950 bg-amber-400 text-slate-950 font-black shadow-sm"
+                          : "border-stone-200 bg-white text-slate-800 hover:border-amber-400"
                     }`}
                 >
                   <Clock className="h-3.5 w-3.5" />
@@ -450,25 +450,25 @@ export default function EquipmentDetailPage() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-3 text-xs font-semibold text-red-600">
+          <div className="flex items-center gap-2 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
         )}
 
         {success && (
-          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs font-semibold text-emerald-700">
+          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs font-bold text-emerald-800">
             ✅ Booking confirmed! Redirecting to equipment list...
           </div>
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-black/5 px-6 py-4 flex items-center justify-between gap-4 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-stone-200 px-6 py-4 flex items-center justify-between gap-4 shadow-2xl">
         <div className="flex items-baseline gap-1 shrink-0">
-          <span className="text-xl font-extrabold text-[#B45309]">
+          <span className="text-xl font-black text-slate-950">
             {costInfo.costStr}
           </span>
-          <span className="text-xs font-medium text-gray-400">
+          <span className="text-xs font-bold text-stone-500">
             {costInfo.unitStr}
           </span>
         </div>
@@ -477,14 +477,14 @@ export default function EquipmentDetailPage() {
           type="button"
           onClick={handleBook}
           disabled={loading || selectedSlot === null || success}
-          className="flex-1 rounded-full bg-[#FACC15] hover:bg-[#EAB308] text-gray-900 font-bold py-4 text-base shadow-md transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 max-w-xs"
+          className="flex-1 rounded-full bg-slate-950 hover:bg-slate-900 text-amber-400 font-black py-4 text-sm shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 max-w-xs"
         >
           {loading ? (
-            <Loader2 className="h-5 w-5 animate-spin text-gray-900" />
+            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
           ) : selectedSlot !== null ? (
             selectedSlotText
           ) : (
-            "Book now"
+            "Select Time Slot"
           )}
         </button>
       </div>

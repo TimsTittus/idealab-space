@@ -91,22 +91,22 @@ export default function LoginPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-          <Lightbulb className="h-8 w-8 text-white" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-400 text-slate-950 shadow-md">
+          <Lightbulb className="h-8 w-8 text-slate-950" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-          IDEA Lab
+        <h1 className="text-3xl font-black tracking-tight text-slate-950">
+          SJCET IDEA Lab
         </h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          SJCET AICTE Innovation Hub
+        <p className="mt-1 text-xs font-bold text-stone-500">
+          Innovate · Design · Engineer · Achieve
         </p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h2 className="mb-2 text-lg font-semibold text-text-primary text-center">
+      <div className="rounded-3xl border border-stone-200 bg-white p-7 shadow-sm">
+        <h2 className="mb-1 text-lg font-black text-slate-950 text-center">
           Sign in to your account
         </h2>
-        <p className="mb-6 text-xs text-text-tertiary text-center">
+        <p className="mb-6 text-xs font-semibold text-stone-500 text-center">
           Use your @sjcetpalai.ac.in Google Workspace account
         </p>
 
@@ -114,10 +114,10 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={googleLoading || loading}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-border bg-surface py-3.5 px-4 text-sm font-semibold text-text-primary shadow-sm transition-all hover:bg-surface-secondary active:scale-[0.98] disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 py-3.5 px-4 text-xs font-black text-slate-950 shadow-xs transition-all hover:bg-stone-100 active:scale-[0.98] disabled:opacity-60"
         >
           {googleLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin text-slate-950" />
           ) : (
             <>
               <GoogleGlyph />
@@ -128,9 +128,9 @@ export default function LoginPage() {
 
         <div className="relative my-6 text-center text-xs">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border" />
+            <div className="w-full border-t border-stone-200" />
           </div>
-          <span className="relative bg-surface px-3 text-text-tertiary uppercase tracking-wider font-semibold">
+          <span className="relative bg-white px-3 text-stone-400 uppercase tracking-widest text-[10px] font-black">
             Or sign in with email
           </span>
         </div>
@@ -139,25 +139,25 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="mb-1.5 block text-sm font-medium text-text-secondary"
+              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
             >
-              Email
+              Email Address
             </label>
             <input
               id="email"
               type="email"
-              placeholder="yourname@cy.sjcetpalai.ac.in"
+              placeholder="yourname@sjcetpalai.ac.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-xl border border-border bg-surface-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 block text-sm font-medium text-text-secondary"
+              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
             >
               Password
             </label>
@@ -169,24 +169,24 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-xl border border-border bg-surface-secondary px-4 py-3 pr-11 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 pr-11 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-900"
               >
                 {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
+                  <EyeOff className="h-4.5 w-4.5" />
                 ) : (
-                  <Eye className="h-5 w-5" />
+                  <Eye className="h-4.5 w-4.5" />
                 )}
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">
+            <div className="rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700">
               {error}
             </div>
           )}
@@ -194,10 +194,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || googleLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-text-primary py-3.5 text-sm font-semibold text-white transition-all hover:bg-text-primary/90 active:scale-[0.98] disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 py-3.5 text-xs font-black text-amber-400 shadow-md transition-all active:scale-[0.98] disabled:opacity-60"
           >
             {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
             ) : (
               "Sign In with Email"
             )}
@@ -205,9 +205,9 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <p className="mt-6 text-center text-sm text-text-secondary">
+      <p className="mt-6 text-center text-xs font-bold text-stone-500">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-semibold text-primary hover:underline">
+        <Link href="/signup" className="font-black text-amber-700 hover:underline">
           Sign Up
         </Link>
       </p>
