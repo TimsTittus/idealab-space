@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isUserAdmin } from "@/lib/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -91,6 +92,7 @@ export default async function ProfilePage() {
     { data: activeCheckin },
     { count: totalCheckinsCount },
     { data: reservations },
+    isAdmin,
   ] = await Promise.all([
     supabase
       .from("user_profiles")
@@ -118,6 +120,8 @@ export default async function ProfilePage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(4),
+
+    isUserAdmin(supabase, user),
   ]);
 
   const languages = (profile?.languages as Array<{ name: string; level: string }>) || [];
@@ -232,7 +236,7 @@ export default async function ProfilePage() {
           </div>
         ) : null}
 
-        {user.app_metadata?.role === "admin" && (
+        {isAdmin && (
           <Link
             href="/admin"
             className="group flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 p-4 font-black text-slate-950 shadow-md transition-all hover:shadow-lg active:scale-[0.99]"

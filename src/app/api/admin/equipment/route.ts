@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isUserAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 async function verifyAdmin() {
@@ -7,7 +8,8 @@ async function verifyAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || user.app_metadata?.role !== "admin") {
+  const authorized = await isUserAdmin(supabase, user);
+  if (!user || !authorized) {
     return { authorized: false, supabase, user: null };
   }
   return { authorized: true, supabase, user };

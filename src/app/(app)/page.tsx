@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isUserAdmin } from "@/lib/auth";
 import Link from "next/link";
 import {
   Calendar,
@@ -30,6 +31,8 @@ export default async function HomePage() {
       supabase.auth.getUser(),
     ]);
 
+  const isAdmin = await isUserAdmin(supabase, user);
+
   return (
     <div className="animate-fade-in">
       <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary-dark to-primary px-5 pb-8 pt-12">
@@ -47,7 +50,7 @@ export default async function HomePage() {
 
             {user ? (
               <div className="flex items-center gap-2">
-                {user.app_metadata?.role === "admin" && (
+                {isAdmin && (
                   <Link
                     href="/admin"
                     className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1.5 text-xs font-extrabold text-slate-950 shadow-sm transition-all hover:bg-amber-300 active:scale-95"

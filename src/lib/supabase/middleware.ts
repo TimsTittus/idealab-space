@@ -36,10 +36,23 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname.startsWith("/admin")) {
-    const role = user?.app_metadata?.role;
-    if (!user || role !== "admin") {
+    if (!user) {
       const dashboardUrl = new URL("/dashboard", request.url);
       return NextResponse.redirect(dashboardUrl, 307);
+    }
+
+    const appRole = user.app_metadata?.role;
+    if (appRole !== "admin") {
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profile?.role !== "admin") {
+        const dashboardUrl = new URL("/dashboard", request.url);
+        return NextResponse.redirect(dashboardUrl, 307);
+      }
     }
   }
 

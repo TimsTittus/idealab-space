@@ -26,6 +26,7 @@ export const userProfiles = pgTable(
     languages: jsonb("languages").default(sql`'[]'::jsonb`),
     githubUrl: text("github_url").default(""),
     avatarUrl: text("avatar_url").default(""),
+    role: text("role").notNull().default("user"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

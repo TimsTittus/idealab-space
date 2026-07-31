@@ -65,9 +65,15 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
   languages       JSONB DEFAULT '[]'::JSONB,
   github_url      TEXT DEFAULT '',
   avatar_url      TEXT DEFAULT '',
+  role            TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Ensure role column and constraint exist if user_profiles table was created prior
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
+ALTER TABLE public.user_profiles DROP CONSTRAINT IF EXISTS user_profiles_role_check;
+ALTER TABLE public.user_profiles ADD CONSTRAINT user_profiles_role_check CHECK (role IN ('user', 'admin'));
 
 DROP TRIGGER IF EXISTS user_profiles_updated_at ON public.user_profiles;
 CREATE TRIGGER user_profiles_updated_at
@@ -83,11 +89,12 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-  INSERT INTO public.user_profiles (user_id, full_name, avatar_url)
+  INSERT INTO public.user_profiles (user_id, full_name, avatar_url, role)
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data ->> 'full_name', ''),
-    COALESCE(NEW.raw_user_meta_data ->> 'avatar_url', '')
+    COALESCE(NEW.raw_user_meta_data ->> 'avatar_url', ''),
+    'user'
   );
   RETURN NEW;
 END;
@@ -113,6 +120,15 @@ CREATE POLICY "Users can insert own profile"
 CREATE POLICY "Users can update own profile"
   ON public.user_profiles FOR UPDATE
   USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can update any profile"
+  ON public.user_profiles FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.user_profiles admin_p
+      WHERE admin_p.user_id = auth.uid() AND admin_p.role = 'admin'
+    )
+  );
 
 CREATE POLICY "Users can delete own profile"
   ON public.user_profiles FOR DELETE
