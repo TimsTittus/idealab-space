@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { isUserAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { equipment } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -10,14 +13,14 @@ async function verifyAdmin() {
 
   const authorized = await isUserAdmin(supabase, user);
   if (!user || !authorized) {
-    return { authorized: false, supabase, user: null };
+    return { authorized: false, user: null };
   }
-  return { authorized: true, supabase, user };
+  return { authorized: true, user };
 }
 
 // POST: Add new equipment
 export async function POST(request: Request) {
-  const { authorized, supabase } = await verifyAdmin();
+  const { authorized } = await verifyAdmin();
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -36,23 +39,28 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
-      .from("equipment")
-      .insert({
+    const [newEq] = await db
+      .insert(equipment)
+      .values({
         name: trimmedName,
         category: trimmedCategory || "General",
         description: description?.trim() || "",
-        image_url: image_url?.trim() || "/equipments/3d_printer.png",
-        is_available: is_available ?? true,
+        imageUrl: image_url?.trim() || "/equipments/3d_printer.png",
+        isAvailable: is_available ?? true,
       })
-      .select()
-      .single();
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, equipment: data });
+    return NextResponse.json({
+      success: true,
+      equipment: {
+        id: newEq.id,
+        name: newEq.name,
+        category: newEq.category,
+        description: newEq.description || "",
+        image_url: newEq.imageUrl || "",
+        is_available: newEq.isAvailable,
+      },
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },
@@ -63,7 +71,7 @@ export async function POST(request: Request) {
 
 // PUT: Edit existing equipment
 export async function PUT(request: Request) {
-  const { authorized, supabase } = await verifyAdmin();
+  const { authorized } = await verifyAdmin();
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -86,25 +94,34 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
-      .from("equipment")
-      .update({
+    const [updatedEq] = await db
+      .update(equipment)
+      .set({
         name: trimmedName,
         category: trimmedCategory,
         description: description?.trim() || "",
-        image_url: image_url?.trim() || "/equipments/3d_printer.png",
-        is_available: is_available ?? true,
-        updated_at: new Date().toISOString(),
+        imageUrl: image_url?.trim() || "/equipments/3d_printer.png",
+        isAvailable: is_available ?? true,
+        updatedAt: new Date(),
       })
-      .eq("id", id)
-      .select()
-      .single();
+      .where(eq(equipment.id, id))
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!updatedEq) {
+      return NextResponse.json({ error: "Equipment not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, equipment: data });
+    return NextResponse.json({
+      success: true,
+      equipment: {
+        id: updatedEq.id,
+        name: updatedEq.name,
+        category: updatedEq.category,
+        description: updatedEq.description || "",
+        image_url: updatedEq.imageUrl || "",
+        is_available: updatedEq.isAvailable,
+      },
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },
@@ -115,7 +132,7 @@ export async function PUT(request: Request) {
 
 // DELETE: Delete equipment permanently from DB
 export async function DELETE(request: Request) {
-  const { authorized, supabase } = await verifyAdmin();
+  const { authorized } = await verifyAdmin();
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -128,13 +145,23 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Equipment ID is required." }, { status: 400 });
     }
 
-    const { error } = await supabase.from("equipment").delete().eq("id", id);
+    const deletedRows = await db
+      .delete(equipment)
+      .where(eq(equipment.id, id))
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (deletedRows.length === 0) {
+      return NextResponse.json(
+        { error: "Equipment not found or already deleted." },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ success: true, message: "Equipment deleted successfully from database." });
+    return NextResponse.json({
+      success: true,
+      message: "Equipment deleted successfully from database.",
+      id: deletedRows[0].id,
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },

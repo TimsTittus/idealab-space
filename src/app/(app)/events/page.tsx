@@ -19,60 +19,105 @@ type Tab = "upcoming" | "ongoing" | "past";
 
 export default function EventsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("upcoming");
-  const [events, setEvents] = useState<{
-    upcoming: EventItem[];
-    ongoing: EventItem[];
-    past: EventItem[];
-  }>({ upcoming: [], ongoing: [], past: [] });
+  const [rawEvents, setRawEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState<Date>(() => new Date());
 
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     const fetchEvents = async () => {
-      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("start_time", { ascending: true });
 
-      const [upcomingRes, ongoingRes, pastRes] = await Promise.all([
-        supabase
-          .from("events")
-          .select("*")
-          .gt("start_time", now)
-          .order("start_time", { ascending: true }),
-        supabase
-          .from("events")
-          .select("*")
-          .lte("start_time", now)
-          .gte("end_time", now)
-          .order("start_time", { ascending: true }),
-        supabase
-          .from("events")
-          .select("*")
-          .lt("end_time", now)
-          .order("start_time", { ascending: false })
-          .limit(20),
-      ]);
-
-      setEvents({
-        upcoming: upcomingRes.data || [],
-        ongoing: ongoingRes.data || [],
-        past: pastRes.data || [],
-      });
+      if (!error && data) {
+        setRawEvents(data);
+      }
       setLoading(false);
     };
 
     fetchEvents();
+
+    const channel = supabase
+      .channel("public:events")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        () => {
+          fetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [supabase]);
+
+  const { upcomingEvents, ongoingEvents, pastEvents } = useMemo(() => {
+    const nowMs = now.getTime();
+    const upcoming: EventItem[] = [];
+    const ongoing: EventItem[] = [];
+    const past: EventItem[] = [];
+
+    for (const ev of rawEvents) {
+      const startMs = new Date(ev.start_time).getTime();
+      const endMs = new Date(ev.end_time).getTime();
+
+      if (nowMs < startMs) {
+        upcoming.push(ev);
+      } else if (nowMs >= startMs && nowMs <= endMs) {
+        ongoing.push(ev);
+      } else {
+        past.push(ev);
+      }
+    }
+
+    upcoming.sort(
+      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    );
+    ongoing.sort(
+      (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    );
+    past.sort(
+      (a, b) => new Date(b.end_time).getTime() - new Date(a.end_time).getTime()
+    );
+
+    return {
+      upcomingEvents: upcoming,
+      ongoingEvents: ongoing,
+      pastEvents: past,
+    };
+  }, [rawEvents, now]);
+
+  const eventsMap = useMemo(
+    () => ({
+      upcoming: upcomingEvents,
+      ongoing: ongoingEvents,
+      past: pastEvents,
+    }),
+    [upcomingEvents, ongoingEvents, pastEvents]
+  );
 
   const tabs: { key: Tab; label: string; count: number }[] = useMemo(
     () => [
-      { key: "upcoming", label: "Upcoming", count: events.upcoming.length },
-      { key: "ongoing", label: "Ongoing", count: events.ongoing.length },
-      { key: "past", label: "Past", count: events.past.length },
+      { key: "upcoming", label: "Upcoming", count: upcomingEvents.length },
+      { key: "ongoing", label: "Ongoing", count: ongoingEvents.length },
+      { key: "past", label: "Past", count: pastEvents.length },
     ],
-    [events]
+    [upcomingEvents.length, ongoingEvents.length, pastEvents.length]
   );
 
-  const activeEvents = events[activeTab];
+  const activeEvents = eventsMap[activeTab];
 
   return (
     <div className="animate-fade-in px-5 pt-8 pb-24 min-h-dvh bg-[#FCFBF4]">
@@ -116,52 +161,71 @@ export default function EventsPage() {
         </div>
       ) : activeEvents.length > 0 ? (
         <div className="mt-6 space-y-4 stagger-children">
-          {activeEvents.map((event) => (
-            <div
-              key={event.id}
-              className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-400"
-            >
-              <h3 className="text-base font-black text-slate-950 tracking-tight">
-                {event.title}
-              </h3>
+          {activeEvents.map((event) => {
+            const startMs = new Date(event.start_time).getTime();
+            const endMs = new Date(event.end_time).getTime();
+            const nowMs = now.getTime();
+            const isOngoing = nowMs >= startMs && nowMs <= endMs;
+            const isPast = nowMs > endMs;
 
-              {event.description && (
-                <p className="mt-1.5 text-xs font-semibold text-stone-600 line-clamp-2 leading-relaxed">
-                  {event.description}
-                </p>
-              )}
-
-              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-800">
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-100 text-slate-950 shrink-0">
-                  <Calendar className="h-3.5 w-3.5 text-amber-700" />
+            return (
+              <div
+                key={event.id}
+                className={`rounded-3xl border p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-400 ${isOngoing
+                  ? "bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/20"
+                  : "bg-white border-stone-200"
+                  }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-base font-black text-slate-950 tracking-tight">
+                    {event.title}
+                  </h3>
+                  {isOngoing && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-200/60 border border-amber-300 px-3 py-1 text-[10px] font-black text-amber-900 uppercase tracking-wider shrink-0">
+                      <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
+                      Happening Now
+                    </span>
+                  )}
+                  {isPast && (
+                    <span className="rounded-full bg-stone-100 border border-stone-200 px-3 py-1 text-[10px] font-bold text-stone-500 uppercase tracking-wider shrink-0">
+                      Ended
+                    </span>
+                  )}
                 </div>
-                <span>
-                  {format(new Date(event.start_time), "d MMM · h:mm a")} -{" "}
-                  {format(new Date(event.end_time), "h:mm a")}
-                </span>
-              </div>
 
-              {event.location && (
-                <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-stone-500">
-                  <MapPin className="h-3.5 w-3.5 text-stone-400 shrink-0" />
-                  <span>{event.location}</span>
+                {event.description && (
+                  <p className="mt-1.5 text-xs font-semibold text-stone-600 line-clamp-2 leading-relaxed">
+                    {event.description}
+                  </p>
+                )}
+
+                <div className="mt-4 flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-xl shrink-0 bg-amber-100/80 text-slate-950">
+                    <Calendar className="h-3.5 w-3.5 text-amber-700" />
+                  </div>
+                  <span>
+                    {format(new Date(event.start_time), "d MMM · h:mm a")} -{" "}
+                    {format(new Date(event.end_time), "h:mm a")}
+                  </span>
                 </div>
-              )}
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {event.event_type && (
-                  <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-400">
-                    {event.event_type}
-                  </span>
+                {event.location && (
+                  <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-stone-500">
+                    <MapPin className="h-3.5 w-3.5 text-stone-400 shrink-0" />
+                    <span>{event.location}</span>
+                  </div>
                 )}
-                {activeTab === "ongoing" && (
-                  <span className="rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-[10px] font-black text-emerald-800 uppercase tracking-wider">
-                    🟢 Happening Now
-                  </span>
-                )}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {event.event_type && (
+                    <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-400">
+                      {event.event_type}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="mt-16 text-center">

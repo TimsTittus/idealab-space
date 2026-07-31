@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { isUserAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { events } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -10,14 +13,14 @@ async function verifyAdmin() {
 
   const authorized = await isUserAdmin(supabase, user);
   if (!user || !authorized) {
-    return { authorized: false, supabase, user: null };
+    return { authorized: false, user: null };
   }
-  return { authorized: true, supabase, user };
+  return { authorized: true, user };
 }
 
 // POST: Add new event
 export async function POST(request: Request) {
-  const { authorized, supabase } = await verifyAdmin();
+  const { authorized } = await verifyAdmin();
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -51,25 +54,32 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
-      .from("events")
-      .insert({
+    const [newEvent] = await db
+      .insert(events)
+      .values({
         title: trimmedTitle,
         description: description?.trim() || "",
-        event_type: event_type?.trim() || "Workshop",
+        eventType: event_type?.trim() || "Workshop",
         location: location?.trim() || "IDEA Lab, SJCET",
-        start_time: startDate.toISOString(),
-        end_time: endDate.toISOString(),
-        image_url: image_url?.trim() || "",
+        startTime: startDate,
+        endTime: endDate,
+        imageUrl: image_url?.trim() || "",
       })
-      .select()
-      .single();
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true, event: data });
+    return NextResponse.json({
+      success: true,
+      event: {
+        id: newEvent.id,
+        title: newEvent.title,
+        description: newEvent.description || "",
+        event_type: newEvent.eventType || "Workshop",
+        location: newEvent.location || "IDEA Lab, SJCET",
+        start_time: newEvent.startTime.toISOString(),
+        end_time: newEvent.endTime.toISOString(),
+        image_url: newEvent.imageUrl || "",
+      },
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },
@@ -80,7 +90,7 @@ export async function POST(request: Request) {
 
 // PUT: Update event
 export async function PUT(request: Request) {
-  const { authorized, supabase } = await verifyAdmin();
+  const { authorized } = await verifyAdmin();
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -118,27 +128,38 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
-      .from("events")
-      .update({
+    const [updatedEvent] = await db
+      .update(events)
+      .set({
         title: trimmedTitle,
         description: description?.trim() || "",
-        event_type: event_type?.trim() || "Workshop",
+        eventType: event_type?.trim() || "Workshop",
         location: location?.trim() || "IDEA Lab, SJCET",
-        start_time: startDate.toISOString(),
-        end_time: endDate.toISOString(),
-        image_url: image_url?.trim() || "",
-        updated_at: new Date().toISOString(),
+        startTime: startDate,
+        endTime: endDate,
+        imageUrl: image_url?.trim() || "",
+        updatedAt: new Date(),
       })
-      .eq("id", id)
-      .select()
-      .single();
+      .where(eq(events.id, id))
+      .returning();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!updatedEvent) {
+      return NextResponse.json({ error: "Event not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, event: data });
+    return NextResponse.json({
+      success: true,
+      event: {
+        id: updatedEvent.id,
+        title: updatedEvent.title,
+        description: updatedEvent.description || "",
+        event_type: updatedEvent.eventType || "Workshop",
+        location: updatedEvent.location || "IDEA Lab, SJCET",
+        start_time: updatedEvent.startTime.toISOString(),
+        end_time: updatedEvent.endTime.toISOString(),
+        image_url: updatedEvent.imageUrl || "",
+      },
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },
@@ -147,9 +168,9 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE: Delete event
+// DELETE: Delete event permanently from DB
 export async function DELETE(request: Request) {
-  const { authorized, supabase } = await verifyAdmin();
+  const { authorized } = await verifyAdmin();
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
@@ -162,12 +183,23 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Event ID is required." }, { status: 400 });
     }
 
-    const { error } = await supabase.from("events").delete().eq("id", id);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    const deletedRows = await db
+      .delete(events)
+      .where(eq(events.id, id))
+      .returning();
+
+    if (deletedRows.length === 0) {
+      return NextResponse.json(
+        { error: "Event not found or already deleted." },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ success: true, message: "Event deleted successfully." });
+    return NextResponse.json({
+      success: true,
+      message: "Event deleted successfully.",
+      id: deletedRows[0].id,
+    });
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Server Error" },

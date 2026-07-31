@@ -35,6 +35,7 @@ export default function AdminEventsPage() {
   const [mounted, setMounted] = useState(false);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState<Date>(() => new Date());
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,8 +62,8 @@ export default function AdminEventsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
-  const fetchEvents = async () => {
-    setLoading(true);
+  const fetchEvents = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const { data, error } = await supabase
         .from("events")
@@ -71,18 +72,41 @@ export default function AdminEventsPage() {
 
       if (error) {
         console.error("Error fetching events:", error.message);
+      } else if (data) {
+        setEvents(data);
       }
-      setEvents(data || []);
     } catch (err) {
       console.error("Error fetching events:", err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     setMounted(true);
-    fetchEvents();
+    fetchEvents(true);
+
+    const channel = supabase
+      .channel("admin-events-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        () => {
+          fetchEvents(false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const openAddModal = () => {
@@ -101,13 +125,20 @@ export default function AdminEventsPage() {
 
   const openEditModal = (ev: EventItem) => {
     setEditingEvent(ev);
+    const startDate = ev.start_time ? new Date(ev.start_time) : new Date();
+    const endDate = ev.end_time ? new Date(ev.end_time) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
     setFormData({
-      title: ev.title,
+      title: ev.title || "",
       event_type: ev.event_type || "Workshop",
       location: ev.location || "IDEA Lab, SJCET",
       description: ev.description || "",
-      start_time: format(new Date(ev.start_time), "yyyy-MM-dd'T'HH:mm"),
-      end_time: format(new Date(ev.end_time), "yyyy-MM-dd'T'HH:mm"),
+      start_time: isNaN(startDate.getTime())
+        ? format(new Date(), "yyyy-MM-dd'T'HH:mm")
+        : format(startDate, "yyyy-MM-dd'T'HH:mm"),
+      end_time: isNaN(endDate.getTime())
+        ? format(new Date(Date.now() + 2 * 60 * 60 * 1000), "yyyy-MM-dd'T'HH:mm")
+        : format(endDate, "yyyy-MM-dd'T'HH:mm"),
       image_url: ev.image_url || "",
     });
     setFormError("");
@@ -160,15 +191,22 @@ export default function AdminEventsPage() {
       });
 
       const result = await res.json();
-      if (!res.ok) {
-        setFormError(result.error || "Failed to save event.");
-        setSubmitting(false);
-        return;
+      if (!res.ok || !result.event) {
+        throw new Error(result.error || "Failed to save event.");
+      }
+
+      const savedEvent: EventItem = result.event;
+      if (editingEvent) {
+        setEvents((prev) =>
+          prev.map((ev) => (ev.id === savedEvent.id ? savedEvent : ev))
+        );
+      } else {
+        setEvents((prev) => [savedEvent, ...prev]);
       }
 
       setIsModalOpen(false);
       setSubmitting(false);
-      fetchEvents();
+      fetchEvents(false);
     } catch (err: any) {
       setFormError(err?.message || "Server Error saving event.");
       setSubmitting(false);
@@ -176,21 +214,29 @@ export default function AdminEventsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event? This action will remove it from the database.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this event? This action will remove it from the database."
+      )
+    )
+      return;
+
+    const previousEvents = [...events];
+    setEvents((prev) => prev.filter((ev) => ev.id !== id));
 
     try {
       const res = await fetch(`/api/admin/events?id=${id}`, {
         method: "DELETE",
       });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(result.error || "Failed to delete event.");
-        return;
+        throw new Error(result.error || "Failed to delete event.");
       }
 
-      fetchEvents();
+      fetchEvents(false);
     } catch (err: any) {
+      setEvents(previousEvents);
       alert(err?.message || "Error deleting event.");
     }
   };
@@ -222,56 +268,86 @@ export default function AdminEventsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
           </div>
         ) : (
-          events.map((ev) => (
-            <div
-              key={ev.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
-                    {ev.event_type}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(ev)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                      title="Edit Event"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(ev.id)}
-                      className="p-1.5 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                      title="Delete Event"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+          events.map((ev) => {
+            const startMs = new Date(ev.start_time).getTime();
+            const endMs = new Date(ev.end_time).getTime();
+            const nowMs = now.getTime();
+            const isOngoing = nowMs >= startMs && nowMs <= endMs;
+            const isUpcoming = nowMs < startMs;
+            const isPast = nowMs > endMs;
 
-                <h3 className="text-base font-bold text-slate-900 line-clamp-1">
-                  {ev.title}
-                </h3>
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                  {ev.description}
-                </p>
-
-                <div className="mt-4 space-y-1.5 text-xs text-slate-600 font-medium">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span>
-                      {format(new Date(ev.start_time), "MMM d, yyyy · h:mm a")}
-                    </span>
+            return (
+              <div
+                key={ev.id}
+                className={`rounded-2xl border p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${isOngoing
+                  ? "bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/20"
+                  : "bg-white border-slate-200"
+                  }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                        {ev.event_type}
+                      </span>
+                      {isOngoing && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-200/60 border border-amber-300 px-2.5 py-0.5 text-[10px] font-black text-amber-900 uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          Ongoing
+                        </span>
+                      )}
+                      {isUpcoming && (
+                        <span className="inline-block rounded-full bg-sky-50 border border-sky-200 px-2.5 py-0.5 text-[10px] font-bold text-sky-700 uppercase tracking-wider">
+                          Upcoming
+                        </span>
+                      )}
+                      {isPast && (
+                        <span className="inline-block rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          Ended
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEditModal(ev)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                        title="Edit Event"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(ev.id)}
+                        className="p-1.5 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        title="Delete Event"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span>{ev.location}</span>
+
+                  <h3 className="text-base font-bold text-slate-900 line-clamp-1">
+                    {ev.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                    {ev.description}
+                  </p>
+
+                  <div className="mt-4 space-y-1.5 text-xs text-slate-600 font-medium">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <span>
+                        {format(new Date(ev.start_time), "MMM d, yyyy · h:mm a")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <span>{ev.location}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
 
         {!loading && events.length === 0 && (

@@ -14,7 +14,7 @@ export default async function SpacePage() {
     supabase
       .from("events")
       .select("*")
-      .gte("start_time", new Date().toISOString())
+      .gte("end_time", new Date().toISOString())
       .order("start_time", { ascending: true })
       .limit(3),
   ]);
