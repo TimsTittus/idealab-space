@@ -22,31 +22,34 @@ export default function EventCard({
   const end = new Date(endTime);
 
   return (
-    <div className="min-w-[280px] snap-start rounded-2xl border border-border bg-surface p-5 transition-all hover:shadow-md active:scale-[0.98]">
-      <h3 className="text-lg font-bold text-text-primary">{title}</h3>
+    <div className="min-w-[280px] max-w-[320px] snap-start rounded-3xl border border-stone-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-400 active:scale-[0.98]">
+      <h3 className="text-base font-black text-slate-950 tracking-tight leading-snug">
+        {title}
+      </h3>
 
-      <div className="mt-3 flex items-center gap-2 text-sm text-text-secondary">
-        <Calendar className="h-4 w-4 shrink-0" />
+      <div className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-700">
+        <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-100 text-slate-950 shrink-0">
+          <Calendar className="h-3.5 w-3.5 text-amber-700" />
+        </div>
         <span>
-          {format(start, "d MMM")} · {format(start, "hh:mm a")} -{" "}
-          {format(end, "hh:mm a")}
+          {format(start, "d MMM")} · {format(start, "h:mm a")} - {format(end, "h:mm a")}
         </span>
       </div>
 
       {location && (
-        <div className="mt-1.5 flex items-center gap-2 text-sm text-text-secondary">
-          <MapPin className="h-4 w-4 shrink-0" />
+        <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-stone-500">
+          <MapPin className="h-3.5 w-3.5 text-stone-400 shrink-0" />
           <span className="truncate">{location}</span>
         </div>
       )}
 
       {eventType && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-primary">
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-400">
             {eventType}
           </span>
-          <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold uppercase tracking-wide text-text-secondary">
-            Offline
+          <span className="rounded-full bg-stone-100 border border-stone-200 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-700">
+            In-Person
           </span>
         </div>
       )}

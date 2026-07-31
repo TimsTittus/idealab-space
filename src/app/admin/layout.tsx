@@ -14,8 +14,8 @@ export default async function AdminLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-dvh bg-[#F8FAFC] text-slate-900 flex flex-col font-sans relative">
-      <header className="sticky top-0 z-30 bg-slate-900 text-white shadow-md border-b border-slate-800">
+    <div className="min-h-dvh bg-[#FCFBF4] text-slate-900 flex flex-col font-sans relative">
+      <header className="sticky top-0 z-30 bg-slate-950 text-white shadow-md border-b border-slate-800">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <Link
@@ -26,14 +26,14 @@ export default async function AdminLayout({
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-bold">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400 text-slate-950 font-black">
                 <ShieldCheck className="h-5 w-5" />
               </span>
               <div>
-                <h1 className="text-sm sm:text-base font-bold tracking-tight text-white leading-none">
+                <h1 className="text-sm sm:text-base font-black tracking-tight text-white leading-none">
                   Admin Portal
                 </h1>
-                <p className="text-[10px] sm:text-[11px] font-medium text-slate-400">
+                <p className="text-[10px] sm:text-[11px] font-bold text-slate-400">
                   SJCET AICTE IDEA Lab
                 </p>
               </div>
@@ -41,12 +41,12 @@ export default async function AdminLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1.5 border border-slate-700">
+            <div className="flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1.5 border border-slate-800">
               <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-semibold text-slate-200 truncate max-w-[140px] sm:max-w-none">
+              <span className="text-xs font-bold text-slate-200 truncate max-w-[140px] sm:max-w-none">
                 {user?.email || "admin@sjcetpalai.ac.in"}
               </span>
-              <span className="hidden sm:inline-block rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 uppercase">
+              <span className="hidden sm:inline-block rounded bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-400 uppercase">
                 Admin
               </span>
             </div>
