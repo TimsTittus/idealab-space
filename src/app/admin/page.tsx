@@ -9,7 +9,7 @@ export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
   const [
-    { data: activeCheckinsData },
+    { data: allCheckinsData },
     { data: userProfilesData },
     { data: reservationsData },
     { data: equipmentData },
@@ -17,7 +17,6 @@ export default async function AdminDashboardPage() {
     supabase
       .from("space_checkins")
       .select("*")
-      .eq("is_active", true)
       .order("checkin_timestamp", { ascending: false }),
 
     supabase
@@ -40,10 +39,12 @@ export default async function AdminDashboardPage() {
     (userProfilesData || []).map((p) => [p.user_id, p])
   );
 
-  const enrichedActiveCheckins = (activeCheckinsData || []).map((c) => ({
+  const enrichedAllCheckins = (allCheckinsData || []).map((c) => ({
     ...c,
     profile: profilesMap.get(c.user_id),
   }));
+
+  const enrichedActiveCheckins = enrichedAllCheckins.filter((c) => c.is_active);
 
   const enrichedReservations = (reservationsData || []).map((r) => ({
     ...r,
@@ -53,6 +54,7 @@ export default async function AdminDashboardPage() {
   return (
     <AdminAnalyticsClient
       activeCheckins={enrichedActiveCheckins}
+      allCheckins={enrichedAllCheckins}
       userProfiles={userProfilesData || []}
       reservations={enrichedReservations}
       equipmentList={equipmentData || []}

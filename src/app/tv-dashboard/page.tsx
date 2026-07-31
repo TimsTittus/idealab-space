@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Lightbulb, Wifi, WifiOff } from "lucide-react";
-import { parsePostgresIntervalMs } from "@/lib/parseInterval";
+import { parsePostgresIntervalMs, isCheckinActive } from "@/lib/parseInterval";
 
 interface ActiveCheckin {
   id: string;
@@ -131,6 +131,12 @@ export default function TVDashboard() {
     };
   }, [supabase, fetchCheckins]);
 
+  const liveCheckins = useMemo(() => {
+    return checkins.filter((c) =>
+      c.is_active !== false && isCheckinActive(c.checkin_timestamp, c.estimated_duration, currentTime.getTime())
+    );
+  }, [checkins, currentTime]);
+
   const getTimeRemaining = useCallback(
     (checkin: ActiveCheckin) => {
       const start = new Date(checkin.checkin_timestamp);
@@ -138,8 +144,6 @@ export default function TVDashboard() {
 
       const end = new Date(start.getTime() + durationMs);
       const remaining = end.getTime() - currentTime.getTime();
-
-      if (remaining <= 0) return "Expired";
 
       const mins = Math.floor(remaining / 60000);
       const hrs = Math.floor(mins / 60);
@@ -205,14 +209,14 @@ export default function TVDashboard() {
       <div className="mt-8 flex items-center gap-3">
         <span className="flex h-3 w-3 rounded-full bg-accent-green animate-pulse-dot" />
         <span className="text-lg font-semibold text-gray-300">
-          {checkins.length} Maker{checkins.length !== 1 ? "s" : ""} in Lab
+          {liveCheckins.length} Maker{liveCheckins.length !== 1 ? "s" : ""} in Lab
         </span>
       </div>
 
       {/* Grid of active users */}
-      {checkins.length > 0 ? (
+      {liveCheckins.length > 0 ? (
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {checkins.map((checkin) => (
+          {liveCheckins.map((checkin) => (
             <div
               key={checkin.id}
               className="animate-scale-in rounded-2xl border border-gray-800 bg-gray-900/60 p-5 backdrop-blur-sm"

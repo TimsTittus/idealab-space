@@ -40,3 +40,15 @@ export function parsePostgresIntervalMs(durationStr?: string | null): number {
 
   return 60 * 60 * 1000;
 }
+
+export function isCheckinActive(
+  checkinTimestamp?: string | null,
+  estimatedDuration?: string | null,
+  nowMs: number = Date.now()
+): boolean {
+  if (!checkinTimestamp) return false;
+  const startMs = new Date(checkinTimestamp).getTime();
+  if (isNaN(startMs)) return false;
+  const durationMs = parsePostgresIntervalMs(estimatedDuration);
+  return startMs + durationMs > nowMs;
+}

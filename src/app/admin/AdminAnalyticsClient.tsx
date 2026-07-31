@@ -25,7 +25,7 @@ import {
   Cpu,
 } from "lucide-react";
 import { format } from "date-fns";
-import { parsePostgresIntervalMs } from "@/lib/parseInterval";
+import { parsePostgresIntervalMs, isCheckinActive } from "@/lib/parseInterval";
 
 export interface UserProfileData {
   id: string;
@@ -80,6 +80,7 @@ export interface EquipmentItemData {
 
 interface AdminAnalyticsClientProps {
   activeCheckins: ActiveCheckinData[];
+  allCheckins?: ActiveCheckinData[];
   userProfiles: UserProfileData[];
   reservations: ReservationData[];
   equipmentList: EquipmentItemData[];
@@ -87,6 +88,7 @@ interface AdminAnalyticsClientProps {
 
 export default function AdminAnalyticsClient({
   activeCheckins,
+  allCheckins = [],
   userProfiles,
   reservations,
   equipmentList,
@@ -95,6 +97,7 @@ export default function AdminAnalyticsClient({
   const [now, setNow] = useState<Date>(() => new Date());
 
   const [activeCheckinsModalOpen, setActiveCheckinsModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [usersModalOpen, setUsersModalOpen] = useState(false);
   const [bookingsModalOpen, setBookingsModalOpen] = useState(false);
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
@@ -102,6 +105,8 @@ export default function AdminAnalyticsClient({
 
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [checkinSearchQuery, setCheckinSearchQuery] = useState("");
+  const [historySearchQuery, setHistorySearchQuery] = useState("");
+  const [historyFilterTab, setHistoryFilterTab] = useState<"all" | "completed" | "live">("all");
   const [bookingFilterTab, setBookingFilterTab] = useState<"all" | "today" | "week">("today");
 
   useEffect(() => {
@@ -214,22 +219,52 @@ export default function AdminAnalyticsClient({
     );
   }, [userProfiles, userSearchQuery]);
 
+  const liveActiveCheckins = useMemo(() => {
+    return activeCheckins.filter((c) =>
+      c.is_active !== false && isCheckinActive(c.checkin_timestamp, c.estimated_duration, now.getTime())
+    );
+  }, [activeCheckins, now]);
+
   const filteredCheckins = useMemo(() => {
-    if (!checkinSearchQuery.trim()) return activeCheckins;
+    if (!checkinSearchQuery.trim()) return liveActiveCheckins;
     const q = checkinSearchQuery.toLowerCase();
-    return activeCheckins.filter(
+    return liveActiveCheckins.filter(
       (c) =>
         c.profile?.full_name?.toLowerCase().includes(q) ||
         c.purpose_of_visit?.toLowerCase().includes(q) ||
         c.profile?.department?.toLowerCase().includes(q)
     );
-  }, [activeCheckins, checkinSearchQuery]);
+  }, [liveActiveCheckins, checkinSearchQuery]);
 
   const modalBookingsList = useMemo(() => {
     if (bookingFilterTab === "today") return todayBookingsList;
     if (bookingFilterTab === "week") return weekBookingsList;
     return reservations;
   }, [bookingFilterTab, todayBookingsList, weekBookingsList, reservations]);
+
+  const checkinHistoryList = useMemo(() => {
+    return allCheckins && allCheckins.length > 0 ? allCheckins : activeCheckins;
+  }, [allCheckins, activeCheckins]);
+
+  const filteredHistory = useMemo(() => {
+    let list = checkinHistoryList;
+    if (historyFilterTab === "live") {
+      list = list.filter((c) => c.is_active !== false && isCheckinActive(c.checkin_timestamp, c.estimated_duration, now.getTime()));
+    } else if (historyFilterTab === "completed") {
+      list = list.filter((c) => !c.is_active || !isCheckinActive(c.checkin_timestamp, c.estimated_duration, now.getTime()));
+    }
+
+    if (historySearchQuery.trim()) {
+      const q = historySearchQuery.toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.profile?.full_name?.toLowerCase().includes(q) ||
+          c.purpose_of_visit?.toLowerCase().includes(q) ||
+          c.profile?.department?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [checkinHistoryList, historyFilterTab, historySearchQuery, now]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -242,8 +277,8 @@ export default function AdminAnalyticsClient({
         </p>
       </div>
 
-      {/* 4 Interactive Metric Cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 5 Interactive Metric Cards */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {/* Active Check-ins Card */}
         <div
           onClick={() => setActiveCheckinsModalOpen(true)}
@@ -259,7 +294,7 @@ export default function AdminAnalyticsClient({
           </div>
           <div className="mt-4 flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-900">
-              {activeCheckins.length}
+              {liveActiveCheckins.length}
             </span>
             <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/80 border border-emerald-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -269,6 +304,33 @@ export default function AdminAnalyticsClient({
           <div className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
             <span>Currently checked-in visitors</span>
             <ChevronRight className="h-4 w-4 text-emerald-600 transition-transform group-hover:translate-x-1" />
+          </div>
+        </div>
+
+        {/* Check-in History Card */}
+        <div
+          onClick={() => setHistoryModalOpen(true)}
+          className="group relative cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg hover:border-blue-400 active:scale-[0.98] transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 group-hover:text-blue-700 transition-colors">
+              Check-in History
+            </span>
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700 group-hover:scale-110 transition-transform">
+              <Clock className="h-5 w-5" />
+            </span>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-3xl font-black text-slate-900">
+              {checkinHistoryList.length}
+            </span>
+            <span className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+              7-Day History
+            </span>
+          </div>
+          <div className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
+            <span>Total recorded visits</span>
+            <ChevronRight className="h-4 w-4 text-blue-600 transition-transform group-hover:translate-x-1" />
           </div>
         </div>
 
@@ -417,14 +479,14 @@ export default function AdminAnalyticsClient({
                 onClick={() => setActiveCheckinsModalOpen(true)}
                 className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
               >
-                View All ({activeCheckins.length})
+                View All ({liveActiveCheckins.length})
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            {activeCheckins.length > 0 ? (
+            {liveActiveCheckins.length > 0 ? (
               <ul className="divide-y divide-slate-100">
-                {activeCheckins.slice(0, 5).map((c) => (
+                {liveActiveCheckins.slice(0, 5).map((c) => (
                   <li
                     key={c.id}
                     onClick={() => openUserDetail(c.profile, c.user_id)}
@@ -472,7 +534,7 @@ export default function AdminAnalyticsClient({
                 </span>
                 <div>
                   <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
-                    Currently Checked-in Makers ({activeCheckins.length})
+                    Currently Checked-in Makers ({liveActiveCheckins.length})
                   </h3>
                   <p className="text-xs text-slate-500">
                     Click on any maker to view their full profile details
@@ -550,6 +612,154 @@ export default function AdminAnalyticsClient({
               ) : (
                 <div className="py-12 text-center text-xs font-bold text-slate-500">
                   No checked-in makers found.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 2. Check-in History Modal */}
+      {historyModalOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-3xl max-h-[85vh] overflow-hidden rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-800 font-bold">
+                  <Clock className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                    Check-in History Log ({checkinHistoryList.length})
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    7-day recorded visits. Click any maker to inspect their user details.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setHistoryModalOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Search & Tabs */}
+            <div className="pt-4 pb-3 space-y-3">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="relative w-full sm:w-80">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search history by name, department, or purpose..."
+                    value={historySearchQuery}
+                    onChange={(e) => setHistorySearchQuery(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold shrink-0">
+                  <button
+                    onClick={() => setHistoryFilterTab("all")}
+                    className={`rounded-lg px-3 py-1.5 transition-all ${historyFilterTab === "all"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                      }`}
+                  >
+                    All ({checkinHistoryList.length})
+                  </button>
+                  <button
+                    onClick={() => setHistoryFilterTab("completed")}
+                    className={`rounded-lg px-3 py-1.5 transition-all ${historyFilterTab === "completed"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                      }`}
+                  >
+                    Completed
+                  </button>
+                  <button
+                    onClick={() => setHistoryFilterTab("live")}
+                    className={`rounded-lg px-3 py-1.5 transition-all ${historyFilterTab === "live"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                      }`}
+                  >
+                    Live Now ({liveActiveCheckins.length})
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+              {filteredHistory.length > 0 ? (
+                filteredHistory.map((c) => {
+                  const active = c.is_active !== false && isCheckinActive(c.checkin_timestamp, c.estimated_duration, now.getTime());
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => openUserDetail(c.profile, c.user_id)}
+                      className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/60 p-4 hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-sm cursor-pointer transition-all"
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        {c.profile?.avatar_url ? (
+                          <img
+                            src={c.profile.avatar_url}
+                            alt={c.profile.full_name || "User"}
+                            className="h-10 w-10 shrink-0 rounded-full object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-xs">
+                            {c.profile?.full_name?.charAt(0) || "U"}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-extrabold text-slate-900 truncate hover:text-blue-600 transition-colors">
+                              {c.profile?.full_name || "Anonymous Maker"}
+                            </p>
+                            {c.profile?.department && (
+                              <span className="shrink-0 rounded-md bg-slate-200/70 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                                {c.profile.department}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-600 truncate mt-0.5">
+                            🎯 {c.purpose_of_visit || "General Work"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0 flex items-center gap-3">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-[11px] font-bold text-slate-800">
+                            {format(new Date(c.checkin_timestamp), "MMM d, h:mm a")}
+                          </p>
+                          <p className="text-[10px] font-semibold text-slate-500">
+                            {c.estimated_duration || "30 mins"}
+                          </p>
+                        </div>
+
+                        {active ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-1 text-[10px] font-black text-emerald-800">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            Live
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-slate-200/80 border border-slate-300 px-2.5 py-1 text-[10px] font-bold text-slate-700">
+                            <CheckCircle2 className="h-3 w-3 text-slate-500" />
+                            Completed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-12 text-center text-xs font-bold text-slate-500">
+                  No check-in history records found matching criteria.
                 </div>
               )}
             </div>
