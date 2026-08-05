@@ -30,6 +30,7 @@ import { parsePostgresIntervalMs, isCheckinActive } from "@/lib/parseInterval";
 export interface UserProfileData {
   id: string;
   user_id: string;
+  email?: string;
   full_name: string;
   department?: string;
   year_of_study?: string;
@@ -214,6 +215,7 @@ export default function AdminAnalyticsClient({
     return userProfiles.filter(
       (u) =>
         u.full_name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
         u.department?.toLowerCase().includes(q) ||
         u.role?.toLowerCase().includes(q)
     );
@@ -837,6 +839,7 @@ export default function AdminAnalyticsClient({
                         )}
                       </div>
                       <p className="text-xs font-semibold text-slate-500 mt-0.5 truncate">
+                        {user.email ? `${user.email} · ` : ""}
                         {user.department || "SJCET AICTE IDEA Lab Member"}
                         {user.year_of_study ? ` · ${user.year_of_study}` : ""}
                       </p>
@@ -1105,6 +1108,11 @@ export default function AdminAnalyticsClient({
                       {inspectingUser.full_name}
                     </h3>
                   </div>
+                  {inspectingUser.email && (
+                    <p className="text-xs font-bold text-slate-900/80">
+                      {inspectingUser.email}
+                    </p>
+                  )}
 
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-bold text-slate-950">
                     {inspectingUser.role === "admin" ? (

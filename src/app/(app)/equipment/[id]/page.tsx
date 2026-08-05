@@ -20,6 +20,7 @@ interface EquipmentItem {
   category: string;
   description: string;
   image_url?: string;
+  price?: number | string;
   rating?: number;
   rate_text?: string;
   hourly_rate?: number;
@@ -121,6 +122,12 @@ const getEquipmentImage = (
 
 const formatHourlyCost = (item: EquipmentItem | null) => {
   if (!item) return { costStr: "Free", unitStr: "/ hour" };
+
+  if (item.price !== undefined && item.price !== null) {
+    const num = Number(item.price);
+    if (isNaN(num) || num === 0) return { costStr: "Free", unitStr: "/ hour" };
+    return { costStr: `₹${num}`, unitStr: "/ hour" };
+  }
 
   if (typeof item.hourly_rate === "number") {
     if (item.hourly_rate === 0) return { costStr: "Free", unitStr: "/ hour" };
@@ -385,8 +392,8 @@ export default function EquipmentDetailPage() {
                     setLoadingData(true);
                   }}
                   className={`flex flex-col items-center justify-center min-w-[66px] px-3.5 py-2.5 rounded-2xl transition-all active:scale-95 shrink-0 ${isSelected
-                      ? "bg-slate-950 text-amber-400 font-black shadow-md border-2 border-amber-400 scale-105"
-                      : "bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-50"
+                    ? "bg-slate-950 text-amber-400 font-black shadow-md border-2 border-amber-400 scale-105"
+                    : "bg-white border border-stone-200 text-stone-700 font-bold hover:bg-stone-50"
                     }`}
                 >
                   <span className="text-[11px] font-bold opacity-80 leading-none">
@@ -433,12 +440,12 @@ export default function EquipmentDetailPage() {
                   disabled={slot.isBooked || slot.isPast}
                   onClick={() => setSelectedSlot(slot.hour)}
                   className={`flex items-center justify-center gap-1.5 rounded-full border px-3 py-2.5 text-xs font-bold transition-all active:scale-95 ${slot.isBooked
-                      ? "border-rose-200 bg-rose-50 text-rose-300 line-through cursor-not-allowed"
-                      : slot.isPast
-                        ? "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed"
-                        : isSelected
-                          ? "border-2 border-slate-950 bg-amber-400 text-slate-950 font-black shadow-sm"
-                          : "border-stone-200 bg-white text-slate-800 hover:border-amber-400"
+                    ? "border-rose-200 bg-rose-50 text-rose-300 line-through cursor-not-allowed"
+                    : slot.isPast
+                      ? "border-stone-200 bg-stone-100 text-stone-400 cursor-not-allowed"
+                      : isSelected
+                        ? "border-2 border-slate-950 bg-amber-400 text-slate-950 font-black shadow-sm"
+                        : "border-stone-200 bg-white text-slate-800 hover:border-amber-400"
                     }`}
                 >
                   <Clock className="h-3.5 w-3.5" />

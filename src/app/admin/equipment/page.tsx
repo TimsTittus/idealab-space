@@ -24,6 +24,7 @@ interface Equipment {
   category: string;
   description: string;
   image_url?: string;
+  price?: number | string;
   is_available: boolean;
   created_at: string;
 }
@@ -53,6 +54,7 @@ export default function AdminEquipmentPage() {
     category: "3D Printing",
     description: "",
     image_url: "/equipments/3d_printer.png",
+    price: "0",
     is_available: true,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -122,6 +124,7 @@ export default function AdminEquipmentPage() {
       category: "3D Printing",
       description: "",
       image_url: "/equipments/3d_printer.png",
+      price: "0",
       is_available: true,
     });
     setFormError("");
@@ -136,6 +139,7 @@ export default function AdminEquipmentPage() {
       category: item.category || "General",
       description: item.description || "",
       image_url: item.image_url || "/equipments/3d_printer.png",
+      price: item.price !== undefined && item.price !== null ? String(item.price) : "0",
       is_available: item.is_available,
     });
     setFormError("");
@@ -298,9 +302,14 @@ export default function AdminEquipmentPage() {
                       <p className="font-bold text-slate-900 truncate">
                         {item.name}
                       </p>
-                      <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-700 border border-slate-200 mt-0.5">
-                        {item.category}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold text-slate-700 border border-slate-200">
+                          {item.category}
+                        </span>
+                        <span className="inline-block rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">
+                          {item.price !== undefined && item.price !== null && Number(item.price) > 0 ? `₹${item.price}` : "Free"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   {item.description && (
@@ -352,6 +361,7 @@ export default function AdminEquipmentPage() {
                   <tr>
                     <th className="px-6 py-4">Equipment</th>
                     <th className="px-6 py-4">Category</th>
+                    <th className="px-6 py-4">Price</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
@@ -384,6 +394,13 @@ export default function AdminEquipmentPage() {
                       <td className="px-6 py-4">
                         <span className="inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-200">
                           {item.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-slate-900">
+                          {item.price !== undefined && item.price !== null && Number(item.price) > 0
+                            ? `₹${item.price}`
+                            : "Free"}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -490,7 +507,7 @@ export default function AdminEquipmentPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Category *
@@ -508,6 +525,23 @@ export default function AdminEquipmentPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Price (per hour)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="0 for Free"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
                 </div>
 
                 <div>

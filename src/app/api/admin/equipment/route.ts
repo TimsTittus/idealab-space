@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, category, description, image_url, is_available } = body;
+    const { name, category, description, image_url, price, is_available } = body;
 
     const trimmedName = name?.trim();
     const trimmedCategory = category?.trim();
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         category: trimmedCategory || "General",
         description: description?.trim() || "",
         imageUrl: image_url?.trim() || "/equipments/3d_printer.png",
+        price: price !== undefined && price !== null && price !== "" ? String(price) : "0",
         isAvailable: is_available ?? true,
       })
       .returning();
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
         category: newEq.category,
         description: newEq.description || "",
         image_url: newEq.imageUrl || "",
+        price: newEq.price || "0",
         is_available: newEq.isAvailable,
       },
     });
@@ -78,7 +80,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, name, category, description, image_url, is_available } = body;
+    const { id, name, category, description, image_url, price, is_available } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Equipment ID is required." }, { status: 400 });
@@ -101,6 +103,7 @@ export async function PUT(request: Request) {
         category: trimmedCategory,
         description: description?.trim() || "",
         imageUrl: image_url?.trim() || "/equipments/3d_printer.png",
+        price: price !== undefined && price !== null && price !== "" ? String(price) : "0",
         isAvailable: is_available ?? true,
         updatedAt: new Date(),
       })
@@ -119,6 +122,7 @@ export async function PUT(request: Request) {
         category: updatedEq.category,
         description: updatedEq.description || "",
         image_url: updatedEq.imageUrl || "",
+        price: updatedEq.price || "0",
         is_available: updatedEq.isAvailable,
       },
     });

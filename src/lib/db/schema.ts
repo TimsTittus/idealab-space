@@ -7,6 +7,7 @@ import {
   jsonb,
   interval,
   index,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -16,6 +17,7 @@ export const userProfiles = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id").notNull().unique(),
+    email: text("email").default(""),
     fullName: text("full_name").notNull().default(""),
     department: text("department").default(""),
     yearOfStudy: text("year_of_study").default(""),
@@ -69,6 +71,7 @@ export const equipment = pgTable("equipment", {
   category: text("category").notNull().default("General"),
   description: text("description").default(""),
   imageUrl: text("image_url").default(""),
+  price: numeric("price", { precision: 10, scale: 2 }).default("0"),
   isAvailable: boolean("is_available").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

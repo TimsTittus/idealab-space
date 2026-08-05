@@ -57,6 +57,7 @@ CREATE TRIGGER sjcet_email_check
 CREATE TABLE IF NOT EXISTS public.user_profiles (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id         UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  email           TEXT DEFAULT '',
   full_name       TEXT NOT NULL DEFAULT '',
   department      TEXT DEFAULT '',
   year_of_study   TEXT DEFAULT '',
@@ -70,7 +71,8 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Ensure role column and constraint exist if user_profiles table was created prior
+-- Ensure email, role columns and constraint exist if user_profiles table was created prior
+ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '';
 ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user';
 ALTER TABLE public.user_profiles DROP CONSTRAINT IF EXISTS user_profiles_role_check;
 ALTER TABLE public.user_profiles ADD CONSTRAINT user_profiles_role_check CHECK (role IN ('user', 'admin'));
@@ -89,13 +91,17 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
-  INSERT INTO public.user_profiles (user_id, full_name, avatar_url, role)
+  INSERT INTO public.user_profiles (user_id, email, full_name, avatar_url, role)
   VALUES (
     NEW.id,
+    COALESCE(NEW.email, NEW.raw_user_meta_data ->> 'email', ''),
     COALESCE(NEW.raw_user_meta_data ->> 'full_name', ''),
     COALESCE(NEW.raw_user_meta_data ->> 'avatar_url', ''),
     'user'
-  );
+  )
+  ON CONFLICT (user_id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = CASE WHEN public.user_profiles.full_name = '' THEN EXCLUDED.full_name ELSE public.user_profiles.full_name END;
   RETURN NEW;
 END;
 $$;
@@ -195,10 +201,13 @@ CREATE TABLE IF NOT EXISTS public.equipment (
   category      TEXT NOT NULL DEFAULT 'General',
   description   TEXT DEFAULT '',
   image_url     TEXT DEFAULT '',
+  price         NUMERIC(10,2) DEFAULT 0,
   is_available  BOOLEAN NOT NULL DEFAULT true,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.equipment ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) DEFAULT 0;
 
 DROP TRIGGER IF EXISTS equipment_updated_at ON public.equipment;
 CREATE TRIGGER equipment_updated_at

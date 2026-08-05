@@ -16,6 +16,7 @@ export interface EquipmentItem {
   category: string;
   description: string;
   is_available: boolean;
+  price?: number | string;
   rating?: number;
   rate_text?: string;
   image_url?: string;
@@ -107,12 +108,24 @@ export default function EquipmentClient({ initialItems }: EquipmentClientProps) 
 
   const itemsToDisplay = useMemo(() => {
     const list = initialItems && initialItems.length > 0 ? initialItems : DEFAULT_EQUIPMENT;
-    return list.map((item) => ({
-      ...item,
-      rating: item.rating || 4.9,
-      rate_text: item.rate_text || "Free / Lab Pass",
-      image_url: getEquipmentImage(item.name, item.category, item.image_url),
-    }));
+    return list.map((item) => {
+      let derivedRateText = item.rate_text || "Free / Lab Pass";
+      if (item.price !== undefined && item.price !== null) {
+        const num = Number(item.price);
+        if (!isNaN(num) && num > 0) {
+          derivedRateText = `₹${num} / hour`;
+        } else if (num === 0) {
+          derivedRateText = "Free / Lab Pass";
+        }
+      }
+
+      return {
+        ...item,
+        rating: item.rating || 4.9,
+        rate_text: derivedRateText,
+        image_url: getEquipmentImage(item.name, item.category, item.image_url),
+      };
+    });
   }, [initialItems]);
 
   const categories = useMemo(() => {
