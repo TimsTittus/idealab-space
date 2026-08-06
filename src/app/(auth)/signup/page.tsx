@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
-import { Lightbulb, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
+import { Lightbulb, Loader2 } from "lucide-react";
 import { formatAuthError } from "@/lib/formatError";
 
 function GoogleGlyph() {
@@ -30,14 +29,8 @@ function GoogleGlyph() {
 }
 
 export default function SignupPage() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const supabase = createClient();
 
   const handleGoogleSignUp = async () => {
@@ -60,68 +53,8 @@ export default function SignupPage() {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    if (!email.toLowerCase().endsWith("sjcetpalai.ac.in")) {
-      setError("Only email addresses ending with sjcetpalai.ac.in are allowed.");
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      setLoading(false);
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (authError) {
-      setError(formatAuthError(authError));
-      setLoading(false);
-      return;
-    }
-
-    setSuccess(true);
-    setLoading(false);
-  };
-
-  if (success) {
-    return (
-      <div className="animate-fade-in text-center p-6 bg-white rounded-3xl border border-stone-200 shadow-sm">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 border border-emerald-300">
-          <CheckCircle2 className="h-8 w-8 text-emerald-700" />
-        </div>
-        <h2 className="text-xl font-black text-slate-950">Check your email</h2>
-        <p className="mt-2 text-xs font-semibold text-stone-600">
-          We&apos;ve sent a verification link to{" "}
-          <span className="font-bold text-slate-950">{email}</span>
-        </p>
-        <Link
-          href="/login"
-          className="mt-6 inline-block rounded-2xl bg-slate-950 px-6 py-3 text-xs font-black text-amber-400 transition-all hover:bg-slate-900 active:scale-[0.98]"
-        >
-          Back to Login
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="animate-fade-in">
-      {/* Logo */}
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-400 text-slate-950 shadow-md">
           <Lightbulb className="h-8 w-8 text-slate-950" />
@@ -130,15 +63,21 @@ export default function SignupPage() {
           Join IDEA Lab
         </h1>
         <p className="mt-1 text-xs font-bold text-stone-500">
-          Create your maker profile
+          Use your @sjcetpalai.ac.in Google Workspace account
         </p>
       </div>
 
       <div className="rounded-3xl border border-stone-200 bg-white p-7 shadow-sm">
+        {error && (
+          <div className="mb-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700 text-center">
+            {error}
+          </div>
+        )}
+
         <button
           type="button"
           onClick={handleGoogleSignUp}
-          disabled={googleLoading || loading}
+          disabled={googleLoading}
           className="flex w-full items-center justify-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 py-3.5 px-4 text-xs font-black text-slate-950 shadow-xs transition-all hover:bg-stone-100 active:scale-[0.98] disabled:opacity-60"
         >
           {googleLoading ? (
@@ -146,118 +85,11 @@ export default function SignupPage() {
           ) : (
             <>
               <GoogleGlyph />
-              <span>Sign Up with Google</span>
+              <span>Continue with Google</span>
             </>
           )}
         </button>
-
-        <div className="relative my-6 text-center text-xs">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-stone-200" />
-          </div>
-          <span className="relative bg-white px-3 text-stone-400 uppercase tracking-widest text-[10px] font-black">
-            Or register with email
-          </span>
-        </div>
-
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label
-              htmlFor="fullName"
-              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
-            >
-              Full Name
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              placeholder="Your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="signupEmail"
-              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
-            >
-              College Email
-            </label>
-            <input
-              id="signupEmail"
-              type="email"
-              placeholder="yourname@sjcetpalai.ac.in"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-            />
-            <p className="mt-1 text-[11px] font-semibold text-stone-500">
-              Emails ending with sjcetpalai.ac.in are accepted
-            </p>
-          </div>
-
-          <div>
-            <label
-              htmlFor="signupPassword"
-              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="signupPassword"
-                type={showPassword ? "text" : "password"}
-                placeholder="Min. 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 pr-11 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-900"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4.5 w-4.5" />
-                ) : (
-                  <Eye className="h-4.5 w-4.5" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || googleLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 py-3.5 text-xs font-black text-amber-400 shadow-md transition-all active:scale-[0.98] disabled:opacity-60"
-          >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
-            ) : (
-              "Create Account with Email"
-            )}
-          </button>
-        </form>
       </div>
-
-      <p className="mt-6 text-center text-xs font-bold text-stone-500">
-        Already have an account?{" "}
-        <Link href="/login" className="font-black text-amber-700 hover:underline">
-          Sign In
-        </Link>
-      </p>
     </div>
   );
 }

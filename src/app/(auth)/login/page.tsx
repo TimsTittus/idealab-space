@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Lightbulb, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Lightbulb, Loader2 } from "lucide-react";
 import { formatAuthError } from "@/lib/formatError";
 
 function GoogleGlyph() {
@@ -31,13 +29,8 @@ function GoogleGlyph() {
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const supabase = createClient();
 
   const handleGoogleSignIn = async () => {
@@ -58,34 +51,6 @@ export default function LoginPage() {
       setError(formatAuthError(authError));
       setGoogleLoading(false);
     }
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(formatAuthError(authError));
-      setLoading(false);
-      return;
-    }
-
-    const {
-      data: { user: authedUser },
-    } = await supabase.auth.getUser();
-
-    if (authedUser?.app_metadata?.role === "admin") {
-      router.push("/admin");
-    } else {
-      router.push("/");
-    }
-    router.refresh();
   };
 
   return (
@@ -110,10 +75,16 @@ export default function LoginPage() {
           Use your @sjcetpalai.ac.in Google Workspace account
         </p>
 
+        {error && (
+          <div className="mb-4 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700 text-center">
+            {error}
+          </div>
+        )}
+
         <button
           type="button"
           onClick={handleGoogleSignIn}
-          disabled={googleLoading || loading}
+          disabled={googleLoading}
           className="flex w-full items-center justify-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 py-3.5 px-4 text-xs font-black text-slate-950 shadow-xs transition-all hover:bg-stone-100 active:scale-[0.98] disabled:opacity-60"
         >
           {googleLoading ? (
@@ -125,92 +96,7 @@ export default function LoginPage() {
             </>
           )}
         </button>
-
-        <div className="relative my-6 text-center text-xs">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-stone-200" />
-          </div>
-          <span className="relative bg-white px-3 text-stone-400 uppercase tracking-widest text-[10px] font-black">
-            Or sign in with email
-          </span>
-        </div>
-
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="yourname@sjcetpalai.ac.in"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-1.5 block text-xs font-black text-slate-950 uppercase tracking-wider"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 pr-11 text-xs font-bold text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-900"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4.5 w-4.5" />
-                ) : (
-                  <Eye className="h-4.5 w-4.5" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || googleLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 hover:bg-slate-900 py-3.5 text-xs font-black text-amber-400 shadow-md transition-all active:scale-[0.98] disabled:opacity-60"
-          >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
-            ) : (
-              "Sign In with Email"
-            )}
-          </button>
-        </form>
       </div>
-
-      <p className="mt-6 text-center text-xs font-bold text-stone-500">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-black text-amber-700 hover:underline">
-          Sign Up
-        </Link>
-      </p>
     </div>
   );
 }
