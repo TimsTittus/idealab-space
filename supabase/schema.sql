@@ -208,6 +208,7 @@ CREATE TABLE IF NOT EXISTS public.equipment (
 );
 
 ALTER TABLE public.equipment ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) DEFAULT 0;
+ALTER TABLE public.equipment ADD COLUMN IF NOT EXISTS rating NUMERIC(3,1) DEFAULT 0;
 
 DROP TRIGGER IF EXISTS equipment_updated_at ON public.equipment;
 CREATE TRIGGER equipment_updated_at
@@ -300,6 +301,44 @@ CREATE POLICY "Anyone can read events"
   USING (true);
 
 -- ────────────────────────────────────────────────────────────
+-- 8.5 TABLE: equipment_ratings
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.equipment_ratings (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id  UUID NOT NULL REFERENCES public.equipment(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  rating        INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT unique_equipment_user_rating UNIQUE (equipment_id, user_id)
+);
+
+DROP TRIGGER IF EXISTS equipment_ratings_updated_at ON public.equipment_ratings;
+CREATE TRIGGER equipment_ratings_updated_at
+  BEFORE UPDATE ON public.equipment_ratings
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+-- RLS
+ALTER TABLE public.equipment_ratings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read ratings"
+  ON public.equipment_ratings FOR SELECT
+  USING (true);
+
+CREATE POLICY "Users can insert own rating"
+  ON public.equipment_ratings FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own rating"
+  ON public.equipment_ratings FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own rating"
+  ON public.equipment_ratings FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- ────────────────────────────────────────────────────────────
 -- 9. INDEXES
 -- ────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON public.user_profiles(user_id);
@@ -309,6 +348,8 @@ CREATE INDEX IF NOT EXISTS idx_checkins_timestamp ON public.space_checkins(check
 CREATE INDEX IF NOT EXISTS idx_eq_reservations_equipment ON public.equipment_reservations(equipment_id);
 CREATE INDEX IF NOT EXISTS idx_eq_reservations_user ON public.equipment_reservations(user_id);
 CREATE INDEX IF NOT EXISTS idx_eq_reservations_period ON public.equipment_reservations USING GIST (reservation_period);
+CREATE INDEX IF NOT EXISTS idx_eq_ratings_equipment ON public.equipment_ratings(equipment_id);
+CREATE INDEX IF NOT EXISTS idx_eq_ratings_user ON public.equipment_ratings(user_id);
 CREATE INDEX IF NOT EXISTS idx_events_start ON public.events(start_time);
 CREATE INDEX IF NOT EXISTS idx_events_end ON public.events(end_time);
 
@@ -317,6 +358,7 @@ CREATE INDEX IF NOT EXISTS idx_events_end ON public.events(end_time);
 -- ────────────────────────────────────────────────────────────
 ALTER PUBLICATION supabase_realtime ADD TABLE public.space_checkins;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.equipment_reservations;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.equipment_ratings;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.user_profiles;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.events;
 

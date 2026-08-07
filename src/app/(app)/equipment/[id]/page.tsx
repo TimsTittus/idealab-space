@@ -98,11 +98,19 @@ export default function EquipmentDetailPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  // Rating State
+  const [avgRating, setAvgRating] = useState(0);
+  const [totalRatings, setTotalRatings] = useState(0);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const [submittingRating, setSubmittingRating] = useState(false);
+  const [ratingMessage, setRatingMessage] = useState("");
+
   const loadData = useCallback(async () => {
     const dayStart = startOfDay(addDays(new Date(), selectedDate));
     const dayEnd = addDays(dayStart, 1);
 
-    const [eqRes, resRes] = await Promise.all([
+    const [eqRes, resRes, ratingRes, userRes] = await Promise.all([
       supabase.from("equipment").select("*").eq("id", equipmentId).single(),
       supabase
         .from("equipment_reservations")
@@ -111,6 +119,11 @@ export default function EquipmentDetailPage() {
         .eq("status", "confirmed")
         .gte("start_time", dayStart.toISOString())
         .lt("start_time", dayEnd.toISOString()),
+      supabase
+        .from("equipment_ratings")
+        .select("rating, user_id")
+        .eq("equipment_id", equipmentId),
+      supabase.auth.getUser(),
     ]);
 
     if (eqRes.data) {
@@ -121,12 +134,64 @@ export default function EquipmentDetailPage() {
     }
 
     setReservations(resRes.data || []);
+
+    if (ratingRes.data && ratingRes.data.length > 0) {
+      const list = ratingRes.data;
+      const count = list.length;
+      const sum = list.reduce((acc, r) => acc + Number(r.rating || 0), 0);
+      const avg = count > 0 ? Number((sum / count).toFixed(1)) : 0;
+      setAvgRating(avg);
+      setTotalRatings(count);
+
+      const currentUser = userRes.data?.user;
+      if (currentUser) {
+        const foundUserRating = list.find((r) => r.user_id === currentUser.id);
+        if (foundUserRating) {
+          setUserRating(Number(foundUserRating.rating));
+        }
+      }
+    } else if (eqRes.data && eqRes.data.rating && Number(eqRes.data.rating) > 0) {
+      const singleRating = Number(eqRes.data.rating);
+      setAvgRating(singleRating);
+      setTotalRatings(1);
+    }
+
     setLoadingData(false);
   }, [supabase, equipmentId, selectedDate]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const handleRate = async (star: number) => {
+    setSubmittingRating(true);
+    setRatingMessage("");
+
+    try {
+      const res = await fetch("/api/equipment/rating", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ equipment_id: equipmentId, rating: star }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setRatingMessage(data.error || "Failed to submit rating.");
+        setSubmittingRating(false);
+        return;
+      }
+
+      setUserRating(data.user_rating);
+      setAvgRating(data.avg_rating);
+      setTotalRatings(data.total_ratings);
+      setRatingMessage("Rating saved successfully!");
+      setTimeout(() => setRatingMessage(""), 3000);
+    } catch (err: any) {
+      setRatingMessage(err?.message || "Error submitting rating.");
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   // Pre-calculate target dates for selector
   const availableDates = useMemo(() => {
@@ -296,8 +361,12 @@ export default function EquipmentDetailPage() {
 
           <div className="mt-1 flex items-center gap-1.5 text-xs font-black text-slate-900">
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            <span>{equipmentItem?.rating || 4.9}</span>
-            <span className="text-xs text-stone-400 font-semibold">(Verified Lab Pass)</span>
+            <span>
+              {totalRatings > 0 ? `${avgRating} / 5` : "New"}
+            </span>
+            <span className="text-xs text-stone-400 font-semibold">
+              ({totalRatings} {totalRatings === 1 ? "rating" : "ratings"})
+            </span>
           </div>
         </div>
 
@@ -350,6 +419,66 @@ export default function EquipmentDetailPage() {
                 {isReadMore ? "Show less" : "...Read more"}
               </button>
             )}
+        </div>
+
+        {/* Interactive Rate Machinery Experience */}
+        <div className="rounded-2xl bg-white p-4.5 border border-stone-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-950">
+                Rate Machinery Experience
+              </h3>
+              <p className="text-[11px] font-semibold text-stone-500 mt-0.5">
+                {userRating !== null
+                  ? `Your rating: ${userRating} / 5 Stars`
+                  : "Tap stars below to submit your rating"}
+              </p>
+            </div>
+            {totalRatings > 0 && (
+              <span className="text-xs font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300">
+                ★ {avgRating} ({totalRatings})
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 pt-1">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const activeStar =
+                hoverRating !== null
+                  ? star <= hoverRating
+                  : userRating !== null && star <= userRating;
+              return (
+                <button
+                  key={star}
+                  type="button"
+                  disabled={submittingRating}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(null)}
+                  onClick={() => handleRate(star)}
+                  className="p-1 rounded-xl transition-transform hover:scale-125 active:scale-95 disabled:opacity-50"
+                  title={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                >
+                  <Star
+                    className={`h-7 w-7 transition-colors ${activeStar
+                      ? "fill-amber-400 text-amber-400 drop-shadow-xs"
+                      : "text-stone-300 hover:text-amber-300"
+                      }`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {ratingMessage && (
+            <p
+              className={`text-xs font-bold ${ratingMessage.includes("successfully")
+                ? "text-emerald-700"
+                : "text-rose-600"
+                }`}
+            >
+              {ratingMessage}
+            </p>
+          )}
         </div>
 
         {/* Available Slots */}

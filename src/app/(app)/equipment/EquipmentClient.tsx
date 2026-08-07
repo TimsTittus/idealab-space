@@ -18,6 +18,7 @@ export interface EquipmentItem {
   is_available: boolean;
   price?: number | string;
   rating?: number;
+  rating_count?: number;
   rate_text?: string;
   image_url?: string;
 }
@@ -58,7 +59,8 @@ export default function EquipmentClient({ initialItems }: EquipmentClientProps) 
 
       return {
         ...item,
-        rating: item.rating || 4.9,
+        rating: item.rating || 0,
+        rating_count: item.rating_count || 0,
         rate_text: derivedRateText,
         image_url: getEquipmentImage(item.name, item.category, item.image_url),
       };
@@ -157,7 +159,11 @@ export default function EquipmentClient({ initialItems }: EquipmentClientProps) 
           >
             <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-black text-amber-400 shadow-sm">
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span>{item.rating}</span>
+              <span>
+                {item.rating_count && item.rating_count > 0
+                  ? `${item.rating} (${item.rating_count})`
+                  : "New"}
+              </span>
             </div>
 
             <div className="my-2 flex h-36 w-full items-center justify-center p-2 bg-stone-50 rounded-2xl border border-stone-100">

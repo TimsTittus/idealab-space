@@ -72,6 +72,7 @@ export const equipment = pgTable("equipment", {
   description: text("description").default(""),
   imageUrl: text("image_url").default(""),
   price: numeric("price", { precision: 10, scale: 2 }).default("0"),
+  rating: numeric("rating", { precision: 3, scale: 1 }).default("0"),
   isAvailable: boolean("is_available").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -131,6 +132,29 @@ export const events = pgTable(
   ]
 );
 
+// ─── Equipment Ratings ──────────────────────────────────────
+export const equipmentRatings = pgTable(
+  "equipment_ratings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    equipmentId: uuid("equipment_id")
+      .notNull()
+      .references(() => equipment.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    rating: numeric("rating", { precision: 2, scale: 1 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_eq_ratings_equipment").on(table.equipmentId),
+    index("idx_eq_ratings_user").on(table.userId),
+  ]
+);
+
 // ─── Type Exports ───────────────────────────────────────────
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type NewUserProfile = typeof userProfiles.$inferInsert;
@@ -138,4 +162,5 @@ export type SpaceCheckin = typeof spaceCheckins.$inferSelect;
 export type NewSpaceCheckin = typeof spaceCheckins.$inferInsert;
 export type Equipment = typeof equipment.$inferSelect;
 export type EquipmentReservation = typeof equipmentReservations.$inferSelect;
+export type EquipmentRating = typeof equipmentRatings.$inferSelect;
 export type Event = typeof events.$inferSelect;
