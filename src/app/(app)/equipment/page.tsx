@@ -18,6 +18,7 @@ export default async function EquipmentPage() {
         description: item.description || "",
         image_url: item.image_url || "",
         is_available: item.is_available ?? true,
+        price: item.price,
       }))
       : [];
 

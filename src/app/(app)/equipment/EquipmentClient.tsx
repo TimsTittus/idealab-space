@@ -22,69 +22,6 @@ export interface EquipmentItem {
   image_url?: string;
 }
 
-const DEFAULT_EQUIPMENT: EquipmentItem[] = [
-  {
-    id: "3d-printer-1",
-    name: "3D Printer",
-    category: "3D Printing",
-    description: "High-precision FDM 3D Printer for PLA & PETG prototypes.",
-    is_available: true,
-    rating: 4.9,
-    rate_text: "Free / Lab Pass",
-    image_url: "/equipments/3d_printer.png",
-  },
-  {
-    id: "laser-cutter-1",
-    name: "CO2 Laser Cutter",
-    category: "Laser Cutting",
-    description: "80W CO2 Laser Engraving and Cutting Machine for acrylic and wood.",
-    is_available: true,
-    rating: 4.9,
-    rate_text: "Free / Lab Pass",
-    image_url: "/equipments/laser_cutter.png",
-  },
-  {
-    id: "cnc-router-1",
-    name: "CNC Router",
-    category: "CNC Routing",
-    description: "Precision 3-axis CNC Router for aluminum and hardwoods.",
-    is_available: true,
-    rating: 4.8,
-    rate_text: "Free / Lab Pass",
-    image_url: "/equipments/cnc_router.png",
-  },
-  {
-    id: "oscilloscope-1",
-    name: "Digital Oscilloscope",
-    category: "Electronics",
-    description: "100MHz 4-Channel Digital Storage Oscilloscope with FFT.",
-    is_available: true,
-    rating: 4.9,
-    rate_text: "Free / Lab Pass",
-    image_url: "/equipments/oscilloscope.png",
-  },
-  {
-    id: "soldering-station-1",
-    name: "Soldering Station",
-    category: "Electronics",
-    description: "ESD-safe Digital Soldering Station with heat gun attachment.",
-    is_available: true,
-    rating: 4.9,
-    rate_text: "Free / Lab Pass",
-    image_url: "/equipments/soldering_station.png",
-  },
-  {
-    id: "pcb-printer-1",
-    name: "PCB Prototyping System",
-    category: "Embedded Systems",
-    description: "Desktop PCB milling machine for rapid double-sided circuit fabrication.",
-    is_available: true,
-    rating: 4.9,
-    rate_text: "Free / Lab Pass",
-    image_url: "/equipments/pcb_printer.png",
-  },
-];
-
 const getEquipmentImage = (name?: string, category?: string, imageUrl?: string) => {
   if (imageUrl) return imageUrl;
   const n = (name || "").toLowerCase();
@@ -107,7 +44,7 @@ export default function EquipmentClient({ initialItems }: EquipmentClientProps) 
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const itemsToDisplay = useMemo(() => {
-    const list = initialItems && initialItems.length > 0 ? initialItems : DEFAULT_EQUIPMENT;
+    const list = initialItems || [];
     return list.map((item) => {
       let derivedRateText = item.rate_text || "Free / Lab Pass";
       if (item.price !== undefined && item.price !== null) {
