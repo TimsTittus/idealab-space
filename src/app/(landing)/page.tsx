@@ -150,70 +150,115 @@ export default function LandingPage() {
         )}
       </header>
 
-      {/* ─── Light Hero Section ────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-amber-50/80 via-orange-50/30 to-white pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-slate-100">
-        {/* Subtle Decorative Ambient Circles */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-amber-300/20 blur-3xl pointer-events-none" />
-        <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-orange-300/15 blur-3xl pointer-events-none" />
+      {/* ─── Vibrant Website Yellow Hero Section (KSUM Reference Layout) ── */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#FFE033] via-[#FFB703] to-[#FB8500] text-slate-950 py-16 lg:py-24 shadow-inner">
+        {/* Subtle Dotted Background Matrix Pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* AICTE Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-100/80 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-slate-950 shadow-xs mb-6 backdrop-blur-md">
-              <ShieldCheck className="h-4 w-4 text-amber-600" />
-              <span>AICTE Sponsored Center of Excellence</span>
+        {/* Bottom Left Concentric Ring Vector Graphics (matching KSUM image reference) */}
+        <svg
+          className="absolute -bottom-28 -left-28 h-[450px] w-[450px] text-white/35 pointer-events-none"
+          viewBox="0 0 300 300"
+          fill="none"
+        >
+          <circle cx="0" cy="300" r="260" stroke="currentColor" strokeWidth="26" />
+          <circle cx="0" cy="300" r="200" stroke="currentColor" strokeWidth="22" />
+          <circle cx="0" cy="300" r="140" stroke="currentColor" strokeWidth="18" />
+          <circle cx="0" cy="300" r="80" stroke="currentColor" strokeWidth="14" />
+        </svg>
+
+        {/* Ambient Top Light Glow */}
+        <div className="absolute -top-20 right-1/4 h-80 w-80 rounded-full bg-white/25 blur-3xl pointer-events-none" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Left Content Column */}
+            <div className="lg:col-span-7 text-left">
+              {/* Facility Category Badge */}
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/10 px-3.5 py-1 text-xs font-black uppercase tracking-widest text-slate-950 border border-slate-950/15 mb-4">
+                <ShieldCheck className="h-4 w-4 text-slate-950" />
+                <span>FACILITY · SJCET AICTE</span>
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl leading-[1.08]">
+                SJCET AICTE <br />
+                IDEA Lab
+              </h1>
+
+              <p className="mt-2 text-base sm:text-lg font-black text-slate-950/90 tracking-wide">
+                Innovate · Design · Engineer · Achieve
+              </p>
+
+              {/* Description Paragraph (Justified) */}
+              <p className="mt-5 text-sm sm:text-base lg:text-lg text-slate-950/85 leading-relaxed font-medium text-justify max-w-2xl">
+                SJCET AICTE IDEA Lab is a state-supported digital fabrication initiative under St. Joseph&apos;s College of Engineering and Technology, Palai, enabling students, faculty, and innovators to transform ideas into functional prototypes, market-ready solutions, and scalable products through access to rapid prototyping capabilities, knowledge, and mentorship.
+              </p>
+
+              {/* Action Pill Buttons (Matching KSUM layout) */}
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/portal"
+                  className="inline-flex items-center gap-2.5 rounded-full bg-slate-950 px-6 py-3.5 text-xs font-black text-amber-400 shadow-xl transition-all hover:bg-slate-900 active:scale-95"
+                >
+                  <span>Explore Our Machines & Services</span>
+                  <ExternalLink className="h-4 w-4 text-amber-400" />
+                </Link>
+
+                <Link
+                  href="/space/checkin"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-slate-950/30 bg-slate-950/10 backdrop-blur-md px-6 py-3.5 text-xs font-black text-slate-950 transition-all hover:bg-slate-950/20 active:scale-95"
+                >
+                  <span>Submit Your Work</span>
+                </Link>
+              </div>
             </div>
 
-            {/* Hero Heading */}
-            <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl leading-[1.1]">
-              SJCET AICTE <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 bg-clip-text text-transparent">IDEA Lab</span>
-            </h1>
+            {/* Right Photo Column (Matching KSUM photo frame & dot grid accent) */}
+            <div className="lg:col-span-5 relative mt-6 lg:mt-0">
+              <div className="relative rounded-3xl overflow-hidden border-4 border-white/50 shadow-2xl group bg-slate-900">
+                <img
+                  src="/images/idealab_facility_hero.jpg"
+                  alt="SJCET AICTE IDEA Lab Facility"
+                  className="w-full h-[300px] sm:h-[380px] object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 left-5 right-5 text-white">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 block">
+                    Main Fabrication Facility
+                  </span>
+                  <p className="text-sm font-extrabold text-white">
+                    SJCET Choondacherry Campus, Palai
+                  </p>
+                </div>
+              </div>
 
-            <p className="mt-4 text-lg font-black text-slate-800 sm:text-xl tracking-wide">
-              Innovate · Design · Engineer · Achieve
-            </p>
-
-            {/* Description (Justified) */}
-            <p className="mt-6 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed font-medium max-w-3xl mx-auto text-justify">
-              A premier digital fabrication and prototyping center at St. Joseph&apos;s College of Engineering and Technology, Palai. Empowering students, faculty, and innovators to convert ideas into physical, market-ready prototypes with industrial 3D printers, CNC routers, laser cutters, and electronics suites.
-            </p>
-
-            {/* Action Buttons */}
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/portal"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-full bg-slate-950 px-8 py-4 text-sm font-black text-amber-400 shadow-xl shadow-slate-950/15 transition-all hover:bg-slate-900 hover:scale-105 active:scale-95"
-              >
-                <span>Enter Student Access Portal</span>
-                <ArrowRight className="h-5 w-5 text-amber-400" />
-              </Link>
-              <a
-                href="#facilities"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-8 py-4 text-sm font-bold text-slate-800 shadow-xs transition-all hover:bg-slate-50 hover:border-slate-400 active:scale-95"
-              >
-                <span>Explore Facilities & Machinery</span>
-                <ChevronRight className="h-4 w-4 text-slate-500" />
-              </a>
+              {/* Dotted Grid Matrix Graphic (Bottom Right Accent from KSUM reference) */}
+              <div className="absolute -bottom-6 -right-6 z-10 grid grid-cols-6 gap-2 p-2 pointer-events-none hidden sm:grid">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <div key={i} className="h-1.5 w-1.5 rounded-full bg-slate-950/40" />
+                ))}
+              </div>
             </div>
+          </div>
 
-            {/* Stat Counters Banner */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-10 border-t border-slate-200">
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm text-center">
-                <span className="text-3xl sm:text-4xl font-black text-amber-600">10+</span>
-                <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-500">Machine Suites</span>
-              </div>
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm text-center">
-                <span className="text-3xl sm:text-4xl font-black text-amber-600">500+</span>
-                <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-500">Prototypes Built</span>
-              </div>
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm text-center">
-                <span className="text-3xl sm:text-4xl font-black text-amber-600">1,200+</span>
-                <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-500">Makers Trained</span>
-              </div>
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm text-center">
-                <span className="text-3xl sm:text-4xl font-black text-amber-600">24/7</span>
-                <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-500">Innovation Access</span>
-              </div>
+          {/* Stat Counters Banner */}
+          <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-8 border-t border-slate-950/20">
+            <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">10+</span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Machine Suites</span>
+            </div>
+            <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">500+</span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Prototypes Built</span>
+            </div>
+            <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">1,200+</span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Makers Trained</span>
+            </div>
+            <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">24/7</span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Innovation Access</span>
             </div>
           </div>
         </div>
@@ -306,162 +351,168 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Facilities & Machine Suites ─────────────────────────── */}
-      <section id="facilities" className="py-20 bg-slate-50/80 border-b border-slate-200 relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* ─── Facilities & Machine Suites (Light Yellow Gradient with Dot Pattern) ── */}
+      <section id="facilities" className="py-20 bg-gradient-to-br from-[#FFFDEB] via-[#FFE875] to-[#FFC72C] border-b border-amber-400/40 relative overflow-hidden shadow-inner">
+        {/* Subtle Dot Matrix Pattern Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(#000000_1.2px,transparent_1.2px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
+
+        {/* Ambient Corner Light Glow */}
+        <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-widest">
+            <span className="text-xs font-black text-slate-950 uppercase tracking-widest bg-slate-950/10 px-3.5 py-1.5 rounded-full border border-slate-950/10 inline-block mb-3 backdrop-blur-sm">
               State-of-the-Art Infrastructure
             </span>
-            <h2 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl tracking-tight">
+            <h2 className="text-3xl font-black text-slate-950 sm:text-4xl tracking-tight">
               Specialized Prototyping Laboratories
             </h2>
-            <p className="mt-3 text-sm text-slate-600 text-justify">
+            <p className="mt-3 text-sm sm:text-base font-medium text-slate-950/85 max-w-2xl mx-auto">
               Explore the dedicated fabrication sections housed inside SJCET AICTE IDEA Lab.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Card 1 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-amber-400 hover:shadow-xl flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-7 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between">
               <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 font-black mb-5 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-5 shadow-md">
                   <Layers className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-black text-slate-950">Additive Manufacturing Lab</h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                   Features industrial FDM 3D printers and high-precision SLA resin printers for rapid physical visualization of CAD designs.
                 </p>
               </div>
-              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
+              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2.5 text-xs text-slate-800 font-semibold">
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> High-volume FDM Printers (PLA/PETG/ABS)
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> High-volume FDM Printers (PLA/PETG/ABS)
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Precision SLA Resin Printers (50 micron resolution)
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Precision SLA Resin Printers (50 micron resolution)
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> 3D Handheld Optical Scanner
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> 3D Handheld Optical Scanner
                 </li>
               </ul>
             </div>
 
             {/* Card 2 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-amber-400 hover:shadow-xl flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-7 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between">
               <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 font-black mb-5 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-5 shadow-md">
                   <Wrench className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-black text-slate-950">Subtractive & CNC Milling Suite</h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                   Heavy-duty computer numerical control machinery for automated routing, wood shaping, and metal component milling.
                 </p>
               </div>
-              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
+              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2.5 text-xs text-slate-800 font-semibold">
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> 3-Axis Wood & Acrylic CNC Router
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> 3-Axis Wood & Acrylic CNC Router
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Precision Desktop PCB Milling Machine
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Precision Desktop PCB Milling Machine
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Vertical CNC Milling Machine
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Vertical CNC Milling Machine
                 </li>
               </ul>
             </div>
 
             {/* Card 3 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-amber-400 hover:shadow-xl flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-7 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between">
               <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 font-black mb-5 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-5 shadow-md">
                   <Zap className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-black text-slate-950">Laser Cutting & Engraving</h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                   High-speed CO2 laser cutting system for rapid sheet material cutting, enclosure fabrication, and precise engraving.
                 </p>
               </div>
-              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
+              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2.5 text-xs text-slate-800 font-semibold">
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> 100W CO2 Laser Cutter & Engraver
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> 100W CO2 Laser Cutter & Engraver
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Support for Acrylic, MDF, Plywood, Leather
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Support for Acrylic, MDF, Plywood, Leather
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Automated Air Assist & Exhaust Filtration
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Automated Air Assist & Exhaust Filtration
                 </li>
               </ul>
             </div>
 
             {/* Card 4 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-amber-400 hover:shadow-xl flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-7 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between">
               <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 font-black mb-5 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-5 shadow-md">
                   <Cpu className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-black text-slate-950">Embedded Systems & IoT Testing</h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                   Fully equipped electronics lab for circuit assembly, signal analysis, microcontroller programming, and wireless node testing.
                 </p>
               </div>
-              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
+              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2.5 text-xs text-slate-800 font-semibold">
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> 100MHz Digital Storage Oscilloscopes
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> 100MHz Digital Storage Oscilloscopes
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Temperature-Controlled Soldering Stations
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Temperature-Controlled Soldering Stations
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Arbitrary Function Signal Generators
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Arbitrary Function Signal Generators
                 </li>
               </ul>
             </div>
 
             {/* Card 5 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-amber-400 hover:shadow-xl flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-7 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between">
               <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 font-black mb-5 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-5 shadow-md">
                   <Compass className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-black text-slate-950">CAD/CAM Design Workstations</h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                   High-performance graphics workstations pre-installed with licensed 3D modeling, CAM simulation, and PCB layout software.
                 </p>
               </div>
-              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
+              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2.5 text-xs text-slate-800 font-semibold">
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> 3D CAD Modeling & Finite Element Analysis
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> 3D CAD Modeling & Finite Element Analysis
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> G-Code Toolpath CAM Simulation Software
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> G-Code Toolpath CAM Simulation Software
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Multi-layer PCB Layout Design Suites
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Multi-layer PCB Layout Design Suites
                 </li>
               </ul>
             </div>
 
             {/* Card 6 */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-amber-400 hover:shadow-xl flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-7 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02] flex flex-col justify-between">
               <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400 text-slate-950 font-black mb-5 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-5 shadow-md">
                   <Wrench className="h-6 w-6" />
                 </div>
                 <h3 className="text-xl font-black text-slate-950">Wood & Metal Workshop</h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                   Traditional power tools, bench saws, drills, and surface finishing gear for structural mechanical fabrication.
                 </p>
               </div>
-              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2 text-xs text-slate-700 font-medium">
+              <ul className="mt-6 pt-6 border-t border-slate-100 space-y-2.5 text-xs text-slate-800 font-semibold">
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Vertical Band Saw & Bench Grinders
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Vertical Band Saw & Bench Grinders
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Variable-speed Heavy Duty Drill Press
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Variable-speed Heavy Duty Drill Press
                 </li>
                 <li className="flex items-center gap-2 text-justify">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" /> Hand-held Cordless Tools & Safety Equipment
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" /> Hand-held Cordless Tools & Safety Equipment
                 </li>
               </ul>
             </div>
@@ -589,58 +640,64 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Services & Ecosystem Section ──────────────────────────── */}
-      <section id="services" className="py-20 bg-slate-50/80 border-b border-slate-200 relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* ─── Services & Ecosystem Section (Light Yellow Gradient with Dot Pattern) ── */}
+      <section id="services" className="py-20 bg-gradient-to-br from-[#FFFDEB] via-[#FFE875] to-[#FFC72C] border-b border-amber-400/40 relative overflow-hidden shadow-inner">
+        {/* Subtle Dot Matrix Pattern Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(#000000_1.2px,transparent_1.2px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
+
+        {/* Ambient Corner Light Glow */}
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-widest">
-              End-to-End Support
+            <span className="text-xs font-black text-slate-950 uppercase tracking-widest bg-slate-950/10 px-3.5 py-1.5 rounded-full border border-slate-950/10 inline-block mb-3 backdrop-blur-sm">
+              END-TO-END SUPPORT
             </span>
-            <h2 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl tracking-tight">
+            <h2 className="text-3xl font-black text-slate-950 sm:text-4xl tracking-tight">
               Services Offered to Innovators
             </h2>
-            <p className="mt-3 text-sm text-slate-600 text-justify">
+            <p className="mt-3 text-sm sm:text-base font-medium text-slate-950/85 max-w-2xl mx-auto">
               Beyond machinery, SJCET AICTE IDEA Lab provides comprehensive guidance from ideation to final prototype.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-amber-400 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-black mb-4">
-                <Wrench className="h-5 w-5" />
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-6 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-4 shadow-md">
+                <Wrench className="h-6 w-6" />
               </div>
               <h3 className="text-base font-black text-slate-950">Prototyping Guidance</h3>
-              <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
+              <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                 Expert assistance on choosing optimal materials, CAD optimization for 3D printing, and G-code generation.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-amber-400 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-black mb-4">
-                <ShieldCheck className="h-5 w-5" />
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-6 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-4 shadow-md">
+                <ShieldCheck className="h-6 w-6" />
               </div>
               <h3 className="text-base font-black text-slate-950">Safety Certification</h3>
-              <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
+              <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                 Hands-on safety bootcamps ensuring every maker operates high-power machinery securely and efficiently.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-amber-400 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-black mb-4">
-                <Calendar className="h-5 w-5" />
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-6 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-4 shadow-md">
+                <Calendar className="h-6 w-6" />
               </div>
               <h3 className="text-base font-black text-slate-950">Maker Bootcamps</h3>
-              <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
+              <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                 Regular weekend bootcamps in 3D Modeling, PCB Design, Robotics, CNC Router operation, and IoT nodes.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-amber-400 transition-all">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 font-black mb-4">
-                <Users className="h-5 w-5" />
+            <div className="rounded-3xl border border-slate-950/10 bg-white/95 backdrop-blur-md p-6 shadow-lg transition-all hover:shadow-2xl hover:scale-[1.02]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 font-black mb-4 shadow-md">
+                <Users className="h-6 w-6" />
               </div>
               <h3 className="text-base font-black text-slate-950">Technical Mentorship</h3>
-              <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
+              <p className="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
                 One-on-one sessions with senior faculty mentors and industry specialists to solve complex technical bugs.
               </p>
             </div>
@@ -806,8 +863,8 @@ export default function LandingPage() {
       {/* ─── Footer (Dark Grounding Footer) ────────────────────────── */}
       <footer id="contact" className="bg-slate-950 border-t border-slate-900 py-16 text-slate-400 text-xs font-medium">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div className="col-span-2 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-slate-950 font-black">
                   <Lightbulb className="h-5 w-5" />
@@ -822,7 +879,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div>
+            <div className="col-span-1 md:col-span-1">
               <h4 className="text-xs font-black text-white uppercase tracking-wider mb-4">Quick Links</h4>
               <ul className="space-y-2 text-xs">
                 <li>
@@ -853,11 +910,11 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div>
+            <div className="col-span-1 md:col-span-1">
               <h4 className="text-xs font-black text-white uppercase tracking-wider mb-4">Lab Contact</h4>
               <ul className="space-y-2 text-xs">
                 <li className="text-slate-300 font-semibold">SJCET Palai Campus</li>
-                <li>Email: idealab@sjcetpalai.ac.in</li>
+                <li className="break-words">Email: idealab@sjcetpalai.ac.in</li>
                 <li>Palai, Kottayam, Kerala</li>
                 <li>Pin Code: 686579</li>
               </ul>
