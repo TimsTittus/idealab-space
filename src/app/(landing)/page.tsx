@@ -805,63 +805,76 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Impact & Student Portal CTA Hero Card ─────────────────── */}
-      <section id="impact" className="py-20 relative bg-slate-50/80">
+      {/* ─── Impact & Key Achievements Section ─────────────────────── */}
+      <section id="impact" className="py-20 bg-slate-50/80 pb-36 relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-slate-950 text-white p-8 sm:p-12 relative overflow-hidden shadow-2xl">
-            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-xs font-black text-amber-700 uppercase tracking-widest bg-amber-100 px-3.5 py-1.5 rounded-full border border-amber-200 inline-block mb-3">
+              Key Achievements
+            </span>
+            <h2 className="text-3xl font-black text-slate-950 sm:text-4xl tracking-tight">
+              Driving Hardware Innovation in Kerala
+            </h2>
+            <p className="mt-3 text-sm text-slate-600 text-justify sm:text-center">
+              SJCET AICTE IDEA Lab provides young engineering minds with instant access to tools, knowledge, and collaborative spaces.
+            </p>
+          </div>
 
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              <div>
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
-                  Key Achievements
-                </span>
-                <h2 className="mt-2 text-3xl font-black text-white sm:text-4xl tracking-tight">
-                  Driving Hardware Innovation in Kerala
-                </h2>
-                <p className="mt-4 text-sm text-slate-300 leading-relaxed text-justify">
-                  SJCET AICTE IDEA Lab provides young engineering minds with instant access to tools, knowledge, and collaborative spaces.
-                </p>
-
-                <div className="mt-6 grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                    <span className="text-2xl font-black text-amber-400">100%</span>
-                    <span className="block text-xs font-bold text-slate-400 mt-1">Student Access</span>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                    <span className="text-2xl font-black text-amber-400">50+</span>
-                    <span className="block text-xs font-bold text-slate-400 mt-1">Patents & Projects</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Student Access Portal Banner Card */}
-              <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 p-8 text-slate-950 shadow-xl">
-                <div className="inline-flex items-center gap-2 rounded-full bg-slate-950/10 px-3 py-1 text-[11px] font-black uppercase text-slate-950 mb-3 border border-slate-950/10">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>Student & Faculty Portal</span>
-                </div>
-                <h3 className="text-2xl font-black tracking-tight text-slate-950">
-                  Ready to Start Building?
-                </h3>
-                <p className="mt-2 text-xs sm:text-sm font-bold text-slate-950/80 leading-relaxed text-justify">
-                  Access the live IDEA Lab Portal to check real-time space occupancy, reserve equipment slots, view upcoming workshops, and update your maker profile.
-                </p>
-                <Link
-                  href="/portal"
-                  className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-xs font-black text-amber-400 shadow-xl transition-all hover:bg-slate-900 active:scale-95"
-                >
-                  <span>Launch Student Portal Now</span>
-                  <ArrowRight className="h-4 w-4 text-amber-400" />
-                </Link>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
+              <span className="text-3xl font-black text-amber-500">100%</span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Student Access</span>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
+              <span className="text-3xl font-black text-amber-500">50+</span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Patents & Projects</span>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
+              <span className="text-3xl font-black text-amber-500">500+</span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Prototypes Built</span>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
+              <span className="text-3xl font-black text-amber-500">1,200+</span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Makers Trained</span>
             </div>
           </div>
         </div>
       </section>
 
+      {/* ─── KSUM-Style Floating Callout Banner (Overlapping Footer) ── */}
+      <div className="relative -mb-28 z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl sm:rounded-[36px] bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 p-8 sm:p-12 text-center shadow-2xl relative overflow-hidden border-4 border-white/40">
+          {/* Subtle Dot Matrix Pattern Overlay (matching KSUM design) */}
+          <div className="absolute inset-0 bg-[radial-gradient(#000000_1.2px,transparent_1.2px)] [background-size:18px_18px] opacity-10 pointer-events-none" />
+
+          {/* Ambient Corner Glow */}
+          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-3xl mx-auto">
+            <span className="text-[11px] font-black uppercase tracking-widest text-slate-950/80 bg-slate-950/10 px-3.5 py-1.5 rounded-full border border-slate-950/10 inline-block mb-3">
+              CONNECT
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
+              Join Us & Grow Your Startup
+            </h2>
+            <p className="mt-3 text-xs sm:text-base font-medium text-slate-950/85 max-w-xl mx-auto text-justify sm:text-center leading-relaxed">
+              Join a thriving ecosystem of opportunities, partnerships, and support designed to help your hardware project grow and succeed.
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center items-center gap-3">
+              <Link
+                href="/portal"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-slate-950 bg-slate-950 px-7 py-3 text-xs font-black text-amber-400 shadow-xl transition-all hover:bg-slate-900 active:scale-95"
+              >
+                <span>Contact Us</span>
+                <ArrowRight className="h-4 w-4 text-amber-400" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ─── Footer (Dark Grounding Footer) ────────────────────────── */}
-      <footer id="contact" className="bg-slate-950 border-t border-slate-900 py-16 text-slate-400 text-xs font-medium">
+      <footer id="contact" className="bg-slate-950 border-t border-slate-900 pt-40 pb-16 text-slate-400 text-xs font-medium relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 md:col-span-2">
