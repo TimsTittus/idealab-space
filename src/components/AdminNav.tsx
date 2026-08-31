@@ -66,9 +66,9 @@ export default function AdminNav() {
           })}
 
           <Link
-            href="/"
+            href="/portal"
             className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition-all"
-            title="App Home"
+            title="Student Portal"
           >
             <Home className="h-5 w-5" />
             <span className="text-[11px] font-semibold">App</span>

@@ -19,9 +19,9 @@ export default async function AdminLayout({
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <Link
-              href="/"
+              href="/portal"
               className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all active:scale-95"
-              title="Return to Main App"
+              title="Return to Student Portal"
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>

@@ -15,7 +15,7 @@ import {
 import EventCard from "@/components/EventCard";
 import { cleanupAndExpireActivity } from "@/lib/checkinCleanup";
 
-export default async function HomePage() {
+export default async function StudentPortalPage() {
   await cleanupAndExpireActivity();
   const supabase = await createClient();
 
@@ -254,7 +254,7 @@ export default async function HomePage() {
 
       <div className="mx-5 mt-7 rounded-3xl bg-gradient-to-r from-[#FFE033] via-[#FFB703] to-[#FB8500] p-6 text-slate-950 shadow-md">
         <h3 className="text-xl font-black tracking-tight text-slate-950">
-          Welcome to SJCET IDEA Lab 🔬
+          Welcome to SJCET IDEA Lab
         </h3>
         <p className="mt-1 text-xs font-bold text-slate-950/80">
           Book state-of-the-art machinery, check in to the lab space, and join maker workshops.

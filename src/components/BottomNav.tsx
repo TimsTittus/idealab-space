@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Zap, Wrench, User } from "lucide-react";
 
 const tabs = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/portal", label: "Portal", icon: Home },
   { href: "/space", label: "Space", icon: Zap },
   { href: "/equipment", label: "Equipment", icon: Wrench },
   { href: "/profile", label: "Profile", icon: User },
@@ -15,7 +15,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
+    if (href === "/portal") return pathname === "/portal";
     return pathname.startsWith(href);
   };
 
