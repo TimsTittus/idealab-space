@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import {
   Lightbulb,
   Wrench,
@@ -21,8 +22,69 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+interface EquipmentData {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  is_available: boolean;
+  price?: number | string;
+  image_url?: string;
+}
+
+const getEquipmentImage = (name?: string, category?: string, imageUrl?: string) => {
+  if (imageUrl && imageUrl.trim().length > 0) {
+    let img = imageUrl.trim();
+    if (!img.startsWith("http") && !img.startsWith("/") && !img.startsWith("data:")) {
+      img = `/equipments/${img}`;
+    }
+    return img;
+  }
+  const n = (name || "").toLowerCase();
+  const c = (category || "").toLowerCase();
+  if (n.includes("laser") || c.includes("laser") || n.includes("cutting")) return "/equipments/laser_cutter.png";
+  if (n.includes("cnc") || c.includes("cnc") || n.includes("router") || n.includes("milling") || c.includes("subtractive")) return "/equipments/cnc_router.png";
+  if (n.includes("soldering") || n.includes("hakko") || n.includes("station") || n.includes("rework")) return "/equipments/soldering_station.png";
+  if (n.includes("oscilloscope") || n.includes("rigol") || n.includes("signal") || n.includes("scope") || n.includes("analyzer")) return "/equipments/oscilloscope.png";
+  if (n.includes("pcb") || n.includes("circuit") || c.includes("embedded") || n.includes("arduino") || n.includes("board")) return "/equipments/pcb_printer.png";
+  if (c.includes("electronics") || c.includes("iot")) return "/equipments/oscilloscope.png";
+  return "/equipments/3d_printer.png";
+};
+
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [equipmentList, setEquipmentList] = useState<EquipmentData[]>([]);
+  const [loadingEquipment, setLoadingEquipment] = useState(true);
+
+  useEffect(() => {
+    async function fetchRealEquipment() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("equipment")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (data && data.length > 0) {
+          const formatted: EquipmentData[] = data.map((item) => ({
+            id: item.id,
+            name: item.name,
+            category: item.category || "General",
+            description: item.description || "",
+            is_available: item.is_available ?? item.isAvailable ?? true,
+            price: item.price,
+            image_url: getEquipmentImage(item.name, item.category, item.image_url || item.imageUrl),
+          }));
+          setEquipmentList(formatted);
+        }
+      } catch (err) {
+        console.error("Error loading real equipment:", err);
+      } finally {
+        setLoadingEquipment(false);
+      }
+    }
+    fetchRealEquipment();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-amber-400 selection:text-slate-950">
@@ -544,98 +606,84 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-5 flex flex-col justify-between hover:bg-white hover:border-amber-400 hover:shadow-md transition-all">
-              <div>
-                <span className="inline-block px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[10px] font-black uppercase tracking-wider mb-3">
-                  Additive
-                </span>
-                <h4 className="text-base font-black text-slate-950">Industrial FDM 3D Printer</h4>
-                <p className="mt-1 text-xs text-slate-600 text-justify">
-                  Large build volume (300 x 300 x 400 mm), dual extruder, PLA/PETG/ABS filament support.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Available
-                </span>
-                <Link
-                  href="/equipment"
-                  className="text-xs font-black text-amber-600 hover:underline"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {loadingEquipment ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-3xl border border-slate-200 bg-slate-50 p-5 flex flex-col justify-between animate-pulse"
                 >
-                  Book Slot →
+                  <div>
+                    <div className="h-36 w-full bg-slate-200 rounded-2xl mb-4" />
+                    <div className="h-4 w-20 bg-amber-200 rounded mb-2" />
+                    <div className="h-5 w-3/4 bg-slate-300 rounded mb-2" />
+                    <div className="h-3 w-full bg-slate-200 rounded mb-1" />
+                    <div className="h-3 w-2/3 bg-slate-200 rounded" />
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+                    <div className="h-3 w-16 bg-slate-200 rounded" />
+                    <div className="h-3 w-20 bg-amber-200 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : equipmentList.length > 0 ? (
+              equipmentList.slice(0, 8).map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-3xl border border-slate-200/90 bg-slate-50/70 p-5 flex flex-col justify-between hover:bg-white hover:border-amber-400 hover:shadow-xl transition-all group"
+                >
+                  <div>
+                    <div className="h-36 w-full flex items-center justify-center p-3 bg-white rounded-2xl border border-slate-200/60 mb-4 group-hover:scale-105 transition-transform duration-300">
+                      <img
+                        src={getEquipmentImage(item.name, item.category, item.image_url)}
+                        alt={item.name}
+                        className="h-full w-full object-contain drop-shadow-xs"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          const fallback = getEquipmentImage(item.name, item.category, "");
+                          if (target.src !== fallback) {
+                            target.src = fallback;
+                          }
+                        }}
+                      />
+                    </div>
+                    <span className="inline-block px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[10px] font-black uppercase tracking-wider mb-2">
+                      {item.category}
+                    </span>
+                    <h4 className="text-base font-black text-slate-950 leading-snug">
+                      {item.name}
+                    </h4>
+                    <p className="mt-1.5 text-xs text-slate-600 text-justify line-clamp-3">
+                      {item.description}
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
+                    {item.is_available ? (
+                      <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Available
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-amber-500" /> Reserved / In Use
+                      </span>
+                    )}
+                    <Link
+                      href={item.id ? `/equipment/${item.id}` : "/equipment"}
+                      className="text-xs font-black text-amber-600 hover:underline"
+                    >
+                      Book Slot →
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center">
+                <p className="text-sm font-extrabold text-slate-700">No machinery registered in database currently.</p>
+                <Link href="/equipment" className="mt-2 inline-block text-xs font-black text-amber-600 hover:underline">
+                  View Portal Inventory →
                 </Link>
               </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-5 flex flex-col justify-between hover:bg-white hover:border-amber-400 hover:shadow-md transition-all">
-              <div>
-                <span className="inline-block px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[10px] font-black uppercase tracking-wider mb-3">
-                  Subtractive
-                </span>
-                <h4 className="text-base font-black text-slate-950">Heavy-Duty CNC Wood Router</h4>
-                <p className="mt-1 text-xs text-slate-600 text-justify">
-                  3-Axis CNC cutting system for sheet plywood, MDF, hard wood, and acrylic milling.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Available
-                </span>
-                <Link
-                  href="/equipment"
-                  className="text-xs font-black text-amber-600 hover:underline"
-                >
-                  Book Slot →
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-5 flex flex-col justify-between hover:bg-white hover:border-amber-400 hover:shadow-md transition-all">
-              <div>
-                <span className="inline-block px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[10px] font-black uppercase tracking-wider mb-3">
-                  Laser
-                </span>
-                <h4 className="text-base font-black text-slate-950">100W CO2 Laser Cutter</h4>
-                <p className="mt-1 text-xs text-slate-600 text-justify">
-                  High-speed cutting and precision vector engraving for acrylic, wood, and paperboard.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Available
-                </span>
-                <Link
-                  href="/equipment"
-                  className="text-xs font-black text-amber-600 hover:underline"
-                >
-                  Book Slot →
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-5 flex flex-col justify-between hover:bg-white hover:border-amber-400 hover:shadow-md transition-all">
-              <div>
-                <span className="inline-block px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 text-[10px] font-black uppercase tracking-wider mb-3">
-                  Electronics
-                </span>
-                <h4 className="text-base font-black text-slate-950">Digital Storage Oscilloscope</h4>
-                <p className="mt-1 text-xs text-slate-600 text-justify">
-                  4-Channel 100MHz digital storage oscilloscope with logic analyzer and protocol decoding.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Available
-                </span>
-                <Link
-                  href="/equipment"
-                  className="text-xs font-black text-amber-600 hover:underline"
-                >
-                  Book Slot →
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -841,110 +889,117 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── KSUM-Style Floating Callout Banner (Overlapping Footer) ── */}
-      <div className="relative -mb-28 z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl sm:rounded-[36px] bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 p-8 sm:p-12 text-center shadow-2xl relative overflow-hidden border-4 border-white/40">
-          {/* Subtle Dot Matrix Pattern Overlay (matching KSUM design) */}
-          <div className="absolute inset-0 bg-[radial-gradient(#000000_1.2px,transparent_1.2px)] [background-size:18px_18px] opacity-10 pointer-events-none" />
+      <footer id="contact" className="relative z-10 font-sans">
+        <div className="bg-[#FFB703] text-slate-950 pt-16 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.16)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.16)_1px,transparent_1px)] [background-size:44px_44px] pointer-events-none" />
 
-          {/* Ambient Corner Glow */}
-          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/30 blur-3xl pointer-events-none" />
+          <div className="relative mx-auto max-w-5xl z-10 flex flex-col items-center justify-center text-center">
+            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-6 my-4">
+              <div className="-rotate-6 bg-[#2EC4B6] border-2 border-slate-950 text-slate-950 font-black px-4 py-2 rounded-xl shadow-[4px_4px_0px_0px_#000] text-xs uppercase tracking-wider hidden sm:flex items-center gap-1.5 shrink-0">
+                <CheckCircle2 className="h-4 w-4 text-slate-950" />
+                <span>RESERVE YOUR SLOT</span>
+              </div>
 
-          <div className="relative z-10 max-w-3xl mx-auto">
-            <span className="text-[11px] font-black uppercase tracking-widest text-slate-950/80 bg-slate-950/10 px-3.5 py-1.5 rounded-full border border-slate-950/10 inline-block mb-3">
-              CONNECT
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight">
-              Join Us & Grow Your Startup
-            </h2>
-            <p className="mt-3 text-xs sm:text-base font-medium text-slate-950/85 max-w-xl mx-auto text-justify sm:text-center leading-relaxed">
-              Join a thriving ecosystem of opportunities, partnerships, and support designed to help your hardware project grow and succeed.
-            </p>
-            <div className="mt-7 flex flex-wrap justify-center items-center gap-3">
               <Link
                 href="/portal"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-slate-950 bg-slate-950 px-7 py-3 text-xs font-black text-amber-400 shadow-xl transition-all hover:bg-slate-900 active:scale-95"
+                className="group relative inline-flex items-center justify-center rounded-full border-4 border-slate-950 bg-slate-950 px-8 sm:px-14 py-4 sm:py-5 text-xl sm:text-3xl font-black text-amber-400 shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all cursor-pointer"
               >
-                <span>Contact Us</span>
-                <ArrowRight className="h-4 w-4 text-amber-400" />
+                <span className="underline underline-offset-4 decoration-amber-400/40">Access Student Portal</span>
               </Link>
+
+              <div className="rotate-6 bg-orange-600 border-2 border-slate-950 text-white font-black px-4 py-2 rounded-xl shadow-[4px_4px_0px_0px_#000] text-xs uppercase tracking-wider hidden sm:block shrink-0">
+                <span>FREE ACCESS!</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ─── Footer (Dark Grounding Footer) ────────────────────────── */}
-      <footer id="contact" className="bg-slate-950 border-t border-slate-900 pt-40 pb-16 text-slate-400 text-xs font-medium relative z-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div className="col-span-2 md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-slate-950 font-black">
-                  <Lightbulb className="h-5 w-5" />
-                </div>
-                <span className="text-base font-black text-white">SJCET AICTE IDEA Lab</span>
+        <div className="bg-[#FFB703] leading-none -mt-1">
+          <svg className="w-full h-8 sm:h-12 text-[#FFFBE6] fill-current" viewBox="0 0 1200 60" preserveAspectRatio="none">
+            <path d="M0,0 C30,40 60,40 90,0 C120,40 150,40 180,0 C210,40 240,40 270,0 C300,40 330,40 360,0 C390,40 420,40 450,0 C480,40 510,40 540,0 C570,40 600,40 630,0 C660,40 690,40 720,0 C750,40 780,40 810,0 C840,40 870,40 900,0 C930,40 960,40 990,0 C1020,40 1050,40 1080,0 C1110,40 1140,40 1170,0 C1185,20 1200,20 1200,0 L1200,60 L0,60 Z" />
+          </svg>
+        </div>
+
+        <div className="bg-[#FFFBE6] text-slate-950 pt-10 pb-16 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-12">
+              <p className="text-slate-950 font-black text-sm sm:text-base leading-snug max-w-2xl ml-auto text-justify sm:text-right">
+                From 3D Printing At Additive Suite To Precision CNC Milling, There&apos;s A Little Something For Every Maker.
+              </p>
+            </div>
+
+            {/* Main Footer Content Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-12 border-b border-slate-950/15 items-start">
+              {/* Brand Title Column */}
+              <div className="col-span-2 md:col-span-2">
+                <h2 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tighter text-slate-950 leading-none lowercase">
+                  sjcet idealab
+                </h2>
+                <p className="mt-3 text-xs font-bold text-slate-800 max-w-md text-justify">
+                  St. Joseph&apos;s College of Engineering and Technology, Choondacherry P.O., Palai, Kottayam District, Kerala - 686579.
+                </p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-600 text-justify">
+                  An Initiative Sponsored by AICTE (All India Council for Technical Education), New Delhi.
+                </p>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-md text-justify">
-                St. Joseph&apos;s College of Engineering and Technology (SJCET), Choondacherry P.O., Palai, Kottayam District, Kerala - 686579.
+
+              {/* Quick Links Column */}
+              <div className="col-span-1 md:col-span-1">
+                <h4 className="text-xs font-black text-slate-950 uppercase tracking-wider mb-4">Quick Links</h4>
+                <ul className="space-y-2 text-xs font-bold text-slate-700">
+                  <li>
+                    <Link href="/portal" className="hover:text-amber-600 transition-colors">
+                      Student Portal
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/equipment" className="hover:text-amber-600 transition-colors">
+                      Equipment Inventory
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/events" className="hover:text-amber-600 transition-colors">
+                      Events & Bootcamps
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/space" className="hover:text-amber-600 transition-colors">
+                      Space Live Status
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/login" className="hover:text-amber-600 transition-colors">
+                      Google Sign In
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Lab Contact Column */}
+              <div className="col-span-1 md:col-span-1">
+                <h4 className="text-xs font-black text-slate-950 uppercase tracking-wider mb-4">Lab Contact</h4>
+                <ul className="space-y-2 text-xs font-bold text-slate-700">
+                  <li className="text-slate-950 font-extrabold">SJCET Palai Campus</li>
+                  <li className="break-words">Email: idealab@sjcetpalai.ac.in</li>
+                  <li>Palai, Kottayam, Kerala</li>
+                  <li>Pin Code: 686579</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom Copyright & Portal Access Row */}
+            <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold text-slate-600">
+              <p>© 2026 SJCET AICTE IDEA Lab. All rights reserved.</p>
+              <p className="flex items-center gap-4">
+                <Link href="/portal" className="hover:text-slate-950 transition-colors">
+                  Portal Access
+                </Link>
+                <span>·</span>
+                <Link href="/admin" className="hover:text-slate-950 transition-colors">
+                  Admin Portal
+                </Link>
               </p>
-              <p className="mt-3 text-xs text-slate-500 font-semibold text-justify">
-                An Initiative Sponsored by AICTE (All India Council for Technical Education), New Delhi.
-              </p>
             </div>
-
-            <div className="col-span-1 md:col-span-1">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-xs">
-                <li>
-                  <Link href="/portal" className="hover:text-amber-400 transition-colors">
-                    Student Portal
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/equipment" className="hover:text-amber-400 transition-colors">
-                    Equipment Inventory
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/events" className="hover:text-amber-400 transition-colors">
-                    Events & Bootcamps
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/space" className="hover:text-amber-400 transition-colors">
-                    Space Live Status
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/login" className="hover:text-amber-400 transition-colors">
-                    Google Sign In
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className="col-span-1 md:col-span-1">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider mb-4">Lab Contact</h4>
-              <ul className="space-y-2 text-xs">
-                <li className="text-slate-300 font-semibold">SJCET Palai Campus</li>
-                <li className="break-words">Email: idealab@sjcetpalai.ac.in</li>
-                <li>Palai, Kottayam, Kerala</li>
-                <li>Pin Code: 686579</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-            <p>© 2026 SJCET AICTE IDEA Lab. All rights reserved.</p>
-            <p className="flex items-center gap-4">
-              <Link href="/portal" className="hover:text-slate-300">
-                Portal Access
-              </Link>
-              <span>·</span>
-              <Link href="/admin" className="hover:text-slate-300">
-                Admin Portal
-              </Link>
-            </p>
           </div>
         </div>
       </footer>

@@ -171,6 +171,13 @@ export default function EquipmentClient({ initialItems }: EquipmentClientProps) 
                 src={item.image_url}
                 alt={item.name}
                 className="h-full w-full object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const fallback = getEquipmentImage(item.name, item.category, "");
+                  if (target.src !== fallback) {
+                    target.src = fallback;
+                  }
+                }}
               />
             </div>
 
