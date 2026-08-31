@@ -51,22 +51,49 @@ const getEquipmentImage = (name?: string, category?: string, imageUrl?: string) 
   return "/equipments/3d_printer.png";
 };
 
+interface EventData {
+  id: string;
+  title: string;
+  description: string;
+  event_type: string;
+  location: string;
+  start_time: string;
+}
+
+interface StatsData {
+  activeMakers: number;
+  equipmentTotal: number;
+  eventsTotal: number;
+  profilesTotal: number;
+}
+
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [equipmentList, setEquipmentList] = useState<EquipmentData[]>([]);
+  const [eventsList, setEventsList] = useState<EventData[]>([]);
+  const [stats, setStats] = useState<StatsData>({
+    activeMakers: 0,
+    equipmentTotal: 0,
+    eventsTotal: 0,
+    profilesTotal: 0,
+  });
   const [loadingEquipment, setLoadingEquipment] = useState(true);
+  const [loadingEvents, setLoadingEvents] = useState(true);
 
   useEffect(() => {
-    async function fetchRealEquipment() {
+    async function fetchRealData() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from("equipment")
-          .select("*")
-          .order("created_at", { ascending: false });
 
-        if (data && data.length > 0) {
-          const formatted: EquipmentData[] = data.map((item) => ({
+        const [eqRes, evRes, checkinRes, profilesRes] = await Promise.all([
+          supabase.from("equipment").select("*").order("created_at", { ascending: false }),
+          supabase.from("events").select("*").order("start_time", { ascending: true }),
+          supabase.from("space_checkins").select("id", { count: "exact" }).eq("is_active", true),
+          supabase.from("user_profiles").select("id", { count: "exact" }),
+        ]);
+
+        if (eqRes.data) {
+          const formatted: EquipmentData[] = eqRes.data.map((item) => ({
             id: item.id,
             name: item.name,
             category: item.category || "General",
@@ -77,13 +104,33 @@ export default function LandingPage() {
           }));
           setEquipmentList(formatted);
         }
+
+        if (evRes.data) {
+          const formattedEvents: EventData[] = evRes.data.map((item) => ({
+            id: item.id,
+            title: item.title,
+            description: item.description || "",
+            event_type: item.event_type || item.eventType || "Workshop",
+            location: item.location || "Choondacherry Campus",
+            start_time: item.start_time || item.startTime || new Date().toISOString(),
+          }));
+          setEventsList(formattedEvents);
+        }
+
+        setStats({
+          activeMakers: checkinRes.count ?? (checkinRes.data ? checkinRes.data.length : 0),
+          equipmentTotal: eqRes.data ? eqRes.data.length : 0,
+          eventsTotal: evRes.data ? evRes.data.length : 0,
+          profilesTotal: profilesRes.count ?? (profilesRes.data ? profilesRes.data.length : 0),
+        });
       } catch (err) {
-        console.error("Error loading real equipment:", err);
+        console.error("Error loading real data from Supabase:", err);
       } finally {
         setLoadingEquipment(false);
+        setLoadingEvents(false);
       }
     }
-    fetchRealEquipment();
+    fetchRealData();
   }, []);
 
   return (
@@ -304,23 +351,31 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Stat Counters Banner */}
+          {/* Stat Counters Banner (Real Database Metrics) */}
           <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-8 border-t border-slate-950/20">
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
-              <span className="text-3xl sm:text-4xl font-black text-amber-400">10+</span>
-              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Machine Suites</span>
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">
+                {stats.equipmentTotal > 0 ? `${stats.equipmentTotal}+` : "6+"}
+              </span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Machinery Count</span>
             </div>
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
-              <span className="text-3xl sm:text-4xl font-black text-amber-400">500+</span>
-              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Prototypes Built</span>
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">
+                {stats.profilesTotal > 0 ? `${stats.profilesTotal}+` : "100+"}
+              </span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Registered Makers</span>
             </div>
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
-              <span className="text-3xl sm:text-4xl font-black text-amber-400">1,200+</span>
-              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Makers Trained</span>
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">
+                {stats.eventsTotal > 0 ? `${stats.eventsTotal}+` : "12+"}
+              </span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Bootcamps & Workshops</span>
             </div>
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
-              <span className="text-3xl sm:text-4xl font-black text-amber-400">24/7</span>
-              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Innovation Access</span>
+              <span className="text-3xl sm:text-4xl font-black text-amber-400">
+                {stats.activeMakers}
+              </span>
+              <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Live Active Makers</span>
             </div>
           </div>
         </div>
@@ -778,77 +833,68 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-3xl border border-slate-200/90 bg-slate-50/70 p-6 flex flex-col justify-between hover:bg-white hover:border-amber-400 transition-all">
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-amber-800 mb-3">
-                  <span>3D Printing Bootcamp</span>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-900">
-                    Hands-on
-                  </span>
-                </div>
-                <h3 className="text-lg font-black text-slate-950">Mastering FDM & SLA 3D Printers</h3>
-                <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
-                  Learn slicing parameters, filament selection, resin curing techniques, and troubleshooting 3D print failures.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Choondacherry Campus</span>
-                <Link
-                  href="/events"
-                  className="text-xs font-black text-amber-600 hover:underline"
+            {loadingEvents ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-3xl border border-slate-200 bg-slate-50 p-6 flex flex-col justify-between animate-pulse"
                 >
-                  Register in Portal →
+                  <div>
+                    <div className="h-4 w-24 bg-amber-200 rounded mb-3" />
+                    <div className="h-6 w-3/4 bg-slate-300 rounded mb-2" />
+                    <div className="h-3 w-full bg-slate-200 rounded mb-1" />
+                    <div className="h-3 w-2/3 bg-slate-200 rounded" />
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+                    <div className="h-3 w-24 bg-slate-200 rounded" />
+                    <div className="h-3 w-20 bg-amber-200 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : eventsList.length > 0 ? (
+              eventsList.slice(0, 6).map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-3xl border border-slate-200/90 bg-slate-50/70 p-6 flex flex-col justify-between hover:bg-white hover:border-amber-400 hover:shadow-xl transition-all"
+                >
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-bold text-amber-800 mb-3">
+                      <span className="truncate pr-2">{item.location}</span>
+                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-900 shrink-0">
+                        {item.event_type}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-slate-950 leading-snug">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify line-clamp-3">
+                      {item.description}
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">
+                      {new Date(item.start_time).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    <Link
+                      href="/events"
+                      className="text-xs font-black text-amber-600 hover:underline"
+                    >
+                      Register in Portal →
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center bg-slate-50 rounded-3xl border border-slate-200">
+                <p className="text-sm font-extrabold text-slate-700">No upcoming workshops scheduled at this moment.</p>
+                <Link href="/events" className="mt-2 inline-block text-xs font-black text-amber-600 hover:underline">
+                  Explore Events Calendar in Portal →
                 </Link>
               </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200/90 bg-slate-50/70 p-6 flex flex-col justify-between hover:bg-white hover:border-amber-400 transition-all">
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-amber-800 mb-3">
-                  <span>Electronics Workshop</span>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-900">
-                    Circuit Design
-                  </span>
-                </div>
-                <h3 className="text-lg font-black text-slate-950">PCB Layout & SMD Soldering</h3>
-                <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
-                  Schematic capture, multi-layer PCB routing, desktop milling, and fine-pitch SMD component soldering.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Electronics Suite</span>
-                <Link
-                  href="/events"
-                  className="text-xs font-black text-amber-600 hover:underline"
-                >
-                  Register in Portal →
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200/90 bg-slate-50/70 p-6 flex flex-col justify-between hover:bg-white hover:border-amber-400 transition-all">
-              <div>
-                <div className="flex items-center justify-between text-xs font-bold text-amber-800 mb-3">
-                  <span>CNC Masterclass</span>
-                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-amber-900">
-                    Fabrication
-                  </span>
-                </div>
-                <h3 className="text-lg font-black text-slate-950">CNC Router Programming & Safety</h3>
-                <p className="mt-2 text-xs text-slate-600 leading-relaxed text-justify">
-                  G-code generation, feeds and speeds optimization, material clamping, and safe CNC router operation.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">CNC Workshop</span>
-                <Link
-                  href="/events"
-                  className="text-xs font-black text-amber-600 hover:underline"
-                >
-                  Register in Portal →
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -870,20 +916,28 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
-              <span className="text-3xl font-black text-amber-500">100%</span>
-              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Student Access</span>
+              <span className="text-3xl font-black text-amber-500">
+                {stats.profilesTotal > 0 ? `${stats.profilesTotal}+` : "100+"}
+              </span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Registered Makers</span>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
-              <span className="text-3xl font-black text-amber-500">50+</span>
-              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Patents & Projects</span>
+              <span className="text-3xl font-black text-amber-500">
+                {stats.equipmentTotal > 0 ? `${stats.equipmentTotal}+` : "6+"}
+              </span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Machinery Units</span>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
-              <span className="text-3xl font-black text-amber-500">500+</span>
-              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Prototypes Built</span>
+              <span className="text-3xl font-black text-amber-500">
+                {stats.eventsTotal > 0 ? `${stats.eventsTotal}+` : "12+"}
+              </span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Bootcamps & Workshops</span>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
-              <span className="text-3xl font-black text-amber-500">1,200+</span>
-              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Makers Trained</span>
+              <span className="text-3xl font-black text-amber-500">
+                {stats.activeMakers}
+              </span>
+              <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Live Active Makers</span>
             </div>
           </div>
         </div>
