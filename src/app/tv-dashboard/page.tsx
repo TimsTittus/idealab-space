@@ -222,9 +222,11 @@ export default function TVDashboard() {
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/20 bg-slate-900/90 p-5 md:px-8 md:py-5 backdrop-blur-md shadow-2xl text-white">
           {/* Logo & Hub Info */}
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 shadow-md shadow-amber-500/30">
-              <Lightbulb className="h-8 w-8 stroke-[2.5]" />
-            </div>
+            <img
+              src="/AICTE%20IdeaLab%20SJCET%20Palai%20-%20Logo.webp"
+              alt="SJCET AICTE IDEA Lab"
+              className="h-14 w-auto shrink-0 object-contain"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-black tracking-tight uppercase text-white">

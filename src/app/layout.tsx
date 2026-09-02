@@ -6,6 +6,15 @@ export const metadata: Metadata = {
   description:
     "Digital twin and management platform for the SJCET AICTE IDEA Lab. Check in, book equipment, and discover events.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

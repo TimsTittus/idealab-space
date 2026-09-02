@@ -46,9 +46,11 @@ export default async function StudentPortalPage() {
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-amber-400 shadow-md">
-                <Lightbulb className="h-5 w-5" />
-              </div>
+              <img
+                src="/AICTE%20IdeaLab%20SJCET%20Palai%20-%20Logo.webp"
+                alt="SJCET AICTE IDEA Lab"
+                className="h-10 w-auto shrink-0 object-contain"
+              />
               <span className="text-xs font-black uppercase tracking-wider text-slate-950/80">
                 SJCET AICTE
               </span>

@@ -139,9 +139,11 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/90 shadow-xs transition-all">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-20">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-slate-950 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform duration-300">
-              <Lightbulb className="h-6 w-6 text-slate-950 fill-slate-950/20" />
-            </div>
+            <img
+              src="/AICTE%20IdeaLab%20SJCET%20Palai%20-%20Logo.webp"
+              alt="SJCET AICTE IDEA Lab"
+              className="h-12 w-auto shrink-0 object-contain group-hover:scale-105 transition-transform duration-300"
+            />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-base font-black tracking-tight text-slate-950 group-hover:text-amber-600 transition-colors">

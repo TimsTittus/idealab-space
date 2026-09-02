@@ -56,9 +56,11 @@ export default function LoginPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-amber-400 text-slate-950 shadow-md">
-          <Lightbulb className="h-8 w-8 text-slate-950" />
-        </div>
+        <img
+          src="/AICTE%20IdeaLab%20SJCET%20Palai%20-%20Logo.webp"
+          alt="SJCET AICTE IDEA Lab"
+          className="mx-auto mb-4 h-16 w-auto shrink-0 object-contain"
+        />
         <h1 className="text-3xl font-black tracking-tight text-slate-950">
           SJCET IDEA Lab
         </h1>
