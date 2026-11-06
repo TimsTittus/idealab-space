@@ -18,6 +18,32 @@ async function verifyAdmin() {
   return { authorized: true, user };
 }
 
+// GET: Fetch all equipment
+export async function GET() {
+  const { authorized } = await verifyAdmin();
+  if (!authorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  try {
+    const items = await db.select().from(equipment).orderBy(equipment.createdAt);
+    return NextResponse.json({
+      equipment: items.map((e) => ({
+        id: e.id,
+        name: e.name,
+        category: e.category,
+        description: e.description || "",
+        image_url: e.imageUrl || "",
+        price: e.price || "0",
+        is_available: e.isAvailable,
+        created_at: e.createdAt,
+      })),
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Server Error" }, { status: 500 });
+  }
+}
+
 // POST: Add new equipment
 export async function POST(request: Request) {
   const { authorized } = await verifyAdmin();

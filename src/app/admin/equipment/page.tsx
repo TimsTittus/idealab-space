@@ -103,12 +103,19 @@ export default function AdminEquipmentPage() {
 
   const fetchEquipment = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("equipment")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    setEquipmentList(data || []);
+    try {
+      const res = await fetch("/api/admin/equipment");
+      const result = await res.json();
+      if (res.ok) {
+        setEquipmentList(result.equipment || []);
+      } else {
+        console.error("Failed to fetch equipment:", result.error);
+        setEquipmentList([]);
+      }
+    } catch (err) {
+      console.error("Error fetching equipment:", err);
+      setEquipmentList([]);
+    }
     setLoading(false);
   };
 
@@ -171,7 +178,7 @@ export default function AdminEquipmentPage() {
 
     setIsModalOpen(false);
     setSubmitting(false);
-    fetchEquipment();
+    await fetchEquipment();
   };
 
   const handleToggleStatus = async (item: Equipment) => {
@@ -190,7 +197,7 @@ export default function AdminEquipmentPage() {
         alert(result.error || "Failed to update equipment status.");
         return;
       }
-      fetchEquipment();
+      await fetchEquipment();
     } catch (err: any) {
       alert(err?.message || "Error updating status.");
     }
@@ -209,7 +216,7 @@ export default function AdminEquipmentPage() {
         alert(result.error || "Failed to delete equipment.");
         return;
       }
-      fetchEquipment();
+      await fetchEquipment();
     } catch (err: any) {
       alert(err?.message || "Error deleting equipment.");
     }
