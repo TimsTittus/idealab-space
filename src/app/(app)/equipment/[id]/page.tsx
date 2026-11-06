@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import {
   ChevronLeft,
   Heart,
@@ -84,7 +83,6 @@ const DAYS_TO_SHOW = [0, 1, 2, 3, 4, 5];
 export default function EquipmentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const supabase = createClient();
   const equipmentId = params.id as string;
 
   const [equipmentItem, setEquipmentItem] = useState<EquipmentItem | null>(null);
@@ -110,54 +108,36 @@ export default function EquipmentDetailPage() {
     const dayStart = startOfDay(addDays(new Date(), selectedDate));
     const dayEnd = addDays(dayStart, 1);
 
-    const [eqRes, resRes, ratingRes, userRes] = await Promise.all([
-      supabase.from("equipment").select("*").eq("id", equipmentId).single(),
-      supabase
-        .from("equipment_reservations")
-        .select("*")
-        .eq("equipment_id", equipmentId)
-        .eq("status", "confirmed")
-        .gte("start_time", dayStart.toISOString())
-        .lt("start_time", dayEnd.toISOString()),
-      supabase
-        .from("equipment_ratings")
-        .select("rating, user_id")
-        .eq("equipment_id", equipmentId),
-      supabase.auth.getUser(),
-    ]);
+    const params = new URLSearchParams({
+      id: equipmentId,
+      date_start: dayStart.toISOString(),
+      date_end: dayEnd.toISOString(),
+    });
 
-    if (eqRes.data) {
-      setEquipmentItem(eqRes.data);
-    } else {
-      setEquipmentItem(null);
-      setError("Equipment item not found.");
-    }
+    try {
+      const res = await fetch(`/api/equipment/detail?${params}`);
+      const data = await res.json();
 
-    setReservations(resRes.data || []);
-
-    if (ratingRes.data && ratingRes.data.length > 0) {
-      const list = ratingRes.data;
-      const count = list.length;
-      const sum = list.reduce((acc, r) => acc + Number(r.rating || 0), 0);
-      const avg = count > 0 ? Number((sum / count).toFixed(1)) : 0;
-      setAvgRating(avg);
-      setTotalRatings(count);
-
-      const currentUser = userRes.data?.user;
-      if (currentUser) {
-        const foundUserRating = list.find((r) => r.user_id === currentUser.id);
-        if (foundUserRating) {
-          setUserRating(Number(foundUserRating.rating));
-        }
+      if (!res.ok) {
+        setEquipmentItem(null);
+        setError(data.error || "Equipment item not found.");
+        setLoadingData(false);
+        return;
       }
-    } else if (eqRes.data && eqRes.data.rating && Number(eqRes.data.rating) > 0) {
-      const singleRating = Number(eqRes.data.rating);
-      setAvgRating(singleRating);
-      setTotalRatings(1);
+
+      setEquipmentItem(data.equipment);
+      setReservations(data.reservations || []);
+      setAvgRating(data.avg_rating || 0);
+      setTotalRatings(data.total_ratings || 0);
+      if (data.user_rating !== null && data.user_rating !== undefined) {
+        setUserRating(data.user_rating);
+      }
+    } catch {
+      setError("Failed to load equipment details.");
     }
 
     setLoadingData(false);
-  }, [supabase, equipmentId, selectedDate]);
+  }, [equipmentId, selectedDate]);
 
   useEffect(() => {
     loadData();
@@ -230,35 +210,28 @@ export default function EquipmentDetailPage() {
     setLoading(true);
     setError("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setError("Please sign in to book equipment.");
-      setLoading(false);
-      return;
-    }
-
     const baseDate = startOfDay(addDays(new Date(), selectedDate));
     const startTime = new Date(baseDate);
     startTime.setHours(selectedSlot, 0, 0, 0);
     const endTime = addHours(startTime, 1);
 
-    const { error: bookError } = await supabase
-      .from("equipment_reservations")
-      .insert({
+    const res = await fetch("/api/equipment/book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         equipment_id: equipmentId,
-        user_id: user.id,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        status: "confirmed",
-      });
+      }),
+    });
 
-    if (bookError) {
-      if (bookError.code === "23P01") {
-        setError("This time slot was just booked by someone else. Please choose another.");
+    const result = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        setError("Please sign in to book equipment.");
       } else {
-        setError(bookError.message);
+        setError(result.error || "Failed to book. Please try again.");
       }
       setLoading(false);
       return;
