@@ -66,7 +66,7 @@ export default function EditProfilePage() {
         .single();
 
       if (data) {
-        setFullName(data.full_name || "");
+        setFullName(data.full_name || user.user_metadata?.full_name || "");
         setDepartment(data.department || "");
         setYearOfStudy(data.year_of_study || "");
         setBio(data.bio || "");
@@ -75,6 +75,8 @@ export default function EditProfilePage() {
         setLanguages(
           (data.languages as Array<{ name: string; level: string }>) || []
         );
+      } else {
+        setFullName(user.user_metadata?.full_name || user.user_metadata?.name || "");
       }
       setLoadingProfile(false);
     };
@@ -114,7 +116,9 @@ export default function EditProfilePage() {
 
     const { error: updateError } = await supabase
       .from("user_profiles")
-      .update({
+      .upsert({
+        user_id: user.id,
+        email: user.email || "",
         full_name: fullName,
         department,
         year_of_study: yearOfStudy,
@@ -122,8 +126,7 @@ export default function EditProfilePage() {
         github_url: githubUrl,
         skill_tags: skillTags,
         languages,
-      })
-      .eq("user_id", user.id);
+      }, { onConflict: "user_id" });
 
     if (updateError) {
       setError(formatAuthError(updateError));
