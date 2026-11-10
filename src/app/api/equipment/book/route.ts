@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { equipment_id, start_time, end_time } = body;
+  const { equipment_id, start_time, end_time, purpose } = body;
 
   if (!equipment_id || !start_time || !end_time) {
     return NextResponse.json(
@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       start_time,
       end_time,
+      purpose: typeof purpose === "string" ? purpose.trim() : "",
       status: "confirmed",
     })
     .select()

@@ -91,6 +91,7 @@ export default function EquipmentDetailPage() {
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isReadMore, setIsReadMore] = useState(false);
+  const [bookingPurpose, setBookingPurpose] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
@@ -222,6 +223,7 @@ export default function EquipmentDetailPage() {
         equipment_id: equipmentId,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
+        purpose: bookingPurpose,
       }),
     });
 
@@ -484,6 +486,22 @@ export default function EquipmentDetailPage() {
             })}
           </div>
         </div>
+
+        {/* Booking Purpose */}
+        {selectedSlot !== null && (
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 mb-2">
+              Booking Purpose
+            </h3>
+            <textarea
+              rows={2}
+              placeholder="Briefly describe what you'll use this equipment for..."
+              value={bookingPurpose}
+              onChange={(e) => setBookingPurpose(e.target.value)}
+              className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-stone-400 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 shadow-xs"
+            />
+          </div>
+        )}
 
         {error && (
           <div className="flex items-center gap-2 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700">

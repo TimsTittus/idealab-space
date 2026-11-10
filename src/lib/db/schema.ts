@@ -93,6 +93,7 @@ export const equipmentReservations = pgTable(
     userId: uuid("user_id").notNull(),
     startTime: timestamp("start_time", { withTimezone: true }).notNull(),
     endTime: timestamp("end_time", { withTimezone: true }).notNull(),
+    purpose: text("purpose").default(""),
     status: text("status").notNull().default("confirmed"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

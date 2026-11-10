@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Wrench, Calendar, Home } from "lucide-react";
+import { LayoutDashboard, Wrench, Calendar, Home, ClipboardList } from "lucide-react";
 
 export default function AdminNav() {
   const pathname = usePathname();
@@ -15,6 +15,7 @@ export default function AdminNav() {
   const navItems = [
     { href: "/admin", label: "Analytics", icon: LayoutDashboard },
     { href: "/admin/equipment", label: "Equipment", icon: Wrench },
+    { href: "/admin/bookings", label: "Bookings", icon: ClipboardList },
     { href: "/admin/events", label: "Events", icon: Calendar },
   ];
 
