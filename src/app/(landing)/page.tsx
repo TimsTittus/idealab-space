@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import {
-  Lightbulb,
   Wrench,
   Zap,
   Calendar,
@@ -81,56 +79,36 @@ export default function LandingPage() {
   const [loadingEvents, setLoadingEvents] = useState(true);
 
   useEffect(() => {
-    async function fetchRealData() {
+    async function fetchLandingData() {
       try {
-        const supabase = createClient();
+        const res = await fetch("/api/landing");
+        if (!res.ok) throw new Error("Failed to fetch landing data");
+        const data = await res.json();
 
-        const [eqRes, evRes, checkinRes, profilesRes] = await Promise.all([
-          supabase.from("equipment").select("*").order("created_at", { ascending: false }),
-          supabase.from("events").select("*").order("start_time", { ascending: true }),
-          supabase.from("space_checkins").select("id", { count: "exact" }).eq("is_active", true),
-          supabase.from("user_profiles").select("id", { count: "exact" }),
-        ]);
-
-        if (eqRes.data) {
-          const formatted: EquipmentData[] = eqRes.data.map((item) => ({
-            id: item.id,
-            name: item.name,
-            category: item.category || "General",
-            description: item.description || "",
-            is_available: item.is_available ?? item.isAvailable ?? true,
-            price: item.price,
-            image_url: getEquipmentImage(item.name, item.category, item.image_url || item.imageUrl),
-          }));
-          setEquipmentList(formatted);
+        if (data.equipment) {
+          setEquipmentList(
+            data.equipment.map((item: EquipmentData) => ({
+              ...item,
+              image_url: getEquipmentImage(item.name, item.category, item.image_url),
+            }))
+          );
         }
 
-        if (evRes.data) {
-          const formattedEvents: EventData[] = evRes.data.map((item) => ({
-            id: item.id,
-            title: item.title,
-            description: item.description || "",
-            event_type: item.event_type || item.eventType || "Workshop",
-            location: item.location || "Choondacherry Campus",
-            start_time: item.start_time || item.startTime || new Date().toISOString(),
-          }));
-          setEventsList(formattedEvents);
+        if (data.upcomingEvents) {
+          setEventsList(data.upcomingEvents);
         }
 
-        setStats({
-          activeMakers: checkinRes.count ?? (checkinRes.data ? checkinRes.data.length : 0),
-          equipmentTotal: eqRes.data ? eqRes.data.length : 0,
-          eventsTotal: evRes.data ? evRes.data.length : 0,
-          profilesTotal: profilesRes.count ?? (profilesRes.data ? profilesRes.data.length : 0),
-        });
+        if (data.stats) {
+          setStats(data.stats);
+        }
       } catch (err) {
-        console.error("Error loading real data from Supabase:", err);
+        console.error("Error loading landing data:", err);
       } finally {
         setLoadingEquipment(false);
         setLoadingEvents(false);
       }
     }
-    fetchRealData();
+    fetchLandingData();
   }, []);
 
   return (
@@ -357,19 +335,19 @@ export default function LandingPage() {
           <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-8 border-t border-slate-950/20">
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
               <span className="text-3xl sm:text-4xl font-black text-amber-400">
-                {stats.equipmentTotal > 0 ? `${stats.equipmentTotal}+` : "6+"}
+                {stats.equipmentTotal}
               </span>
               <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Machinery Count</span>
             </div>
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
               <span className="text-3xl sm:text-4xl font-black text-amber-400">
-                {stats.profilesTotal > 0 ? `${stats.profilesTotal}+` : "100+"}
+                {stats.profilesTotal}
               </span>
               <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Registered Makers</span>
             </div>
             <div className="rounded-2xl border border-slate-950/10 bg-slate-950 p-5 shadow-lg text-center">
               <span className="text-3xl sm:text-4xl font-black text-amber-400">
-                {stats.eventsTotal > 0 ? `${stats.eventsTotal}+` : "12+"}
+                {stats.eventsTotal}
               </span>
               <span className="block mt-1 text-xs font-extrabold uppercase tracking-wider text-slate-300">Bootcamps & Workshops</span>
             </div>
@@ -919,19 +897,19 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
               <span className="text-3xl font-black text-amber-500">
-                {stats.profilesTotal > 0 ? `${stats.profilesTotal}+` : "100+"}
+                {stats.profilesTotal}
               </span>
               <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Registered Makers</span>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
               <span className="text-3xl font-black text-amber-500">
-                {stats.equipmentTotal > 0 ? `${stats.equipmentTotal}+` : "6+"}
+                {stats.equipmentTotal}
               </span>
               <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Machinery Units</span>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xs">
               <span className="text-3xl font-black text-amber-500">
-                {stats.eventsTotal > 0 ? `${stats.eventsTotal}+` : "12+"}
+                {stats.eventsTotal}
               </span>
               <span className="block text-xs font-extrabold text-slate-700 mt-1 uppercase tracking-wider">Bootcamps & Workshops</span>
             </div>
